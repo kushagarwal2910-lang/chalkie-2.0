@@ -22,7 +22,7 @@ const ArchitectureNodeView = memo(function ArchitectureNodeView({ data, selected
   const o = data.object;
   return <div className={"architecture-node" + (data.active ? " is-active" : "") + (selected ? " is-selected" : "")} style={{ width: o.width, height: o.height }}>
     <Handle type="target" position={Position.Left} id="in" />
-    <div className="architecture-node-heading"><span className="architecture-asset"><ArchitectureAsset id={o.assetId} /></span><div><span className="architecture-kind">{o.kind ?? "Legacy visual"}</span><strong title={o.label}>{o.label || "Untitled component"}</strong></div>{data.active && <span className={"architecture-pointer" + (data.speaking ? " speaking" : "")} aria-label="Explanation focus" />}</div>
+    <div className="architecture-node-heading"><span className="architecture-asset"><ArchitectureAsset id={o.assetId} /></span><div><span className="architecture-kind">{o.kind === "unknown" ? "Component" : o.kind ?? "Legacy visual"}</span><strong title={o.label}>{o.label || "Untitled component"}</strong></div>{data.active && <span className={"architecture-pointer" + (data.speaking ? " speaking" : "")} aria-label="Explanation focus" />}</div>
     <p className="architecture-description">{o.description || "Saved visual from an earlier Chalkie lesson. Open the inspector for its original details."}</p>
     <div className="architecture-node-footer"><span title={o.group}>{o.group || "System component"}</span><span>{o.certainty === "inferred" || o.certainty === "unknown" ? o.certainty : (o.evidenceIds?.length ?? 0) + " sources"}</span></div>
     <Handle type="source" position={Position.Right} id="out" />

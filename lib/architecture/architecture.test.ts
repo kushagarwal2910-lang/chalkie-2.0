@@ -4,7 +4,7 @@ import { classifyBlueprint, parseBlueprint, redactSecrets } from "./blueprints.t
 import { ingestRepository, parseRepositoryUrl, retrieveEvidence } from "./github.ts";
 import { collisionFreePosition, layoutArchitecture, overlap } from "./layout.ts";
 import { assetCatalog, searchAssets } from "./assets.ts";
-import { validateExplanation, createRepositoryLesson, createRepositoryFollowUp } from "./explanation.ts";
+import { validateExplanation, normalizeExplanationPresentation, createRepositoryLesson, createRepositoryFollowUp } from "./explanation.ts";
 import { importArchitectureDocument } from "./document.ts";
 import { lessonPlanSchema, followUpPlanSchema } from "../lesson-schema.ts";
 import { saveRepositoryIndex, loadRepositoryIndex, clearRepositoryIndexes } from "./index-store.ts";
@@ -19,6 +19,9 @@ import { repositoryInputSchema } from "../repository-input.ts";
 import { githubFailure } from "./github-errors.ts";
 import { providerFailure } from "../provider-response.ts";
 import { zipFixture, archiveResponse } from "./test-zip-fixture";
+import { GroqHttpError } from "../groq-pool-core";
+import { ProviderResponseError } from "../provider-response";
+import { basicExplanation } from "./basic-explanation";
 
 test("blueprint allowlist excludes application source, secrets, state, symlinks and vendored content", () => {
   for (const path of ["app.ts", "auth.py", "lib/utils.js", "src/page.tsx", ".env", ".env.production", "terraform.tfstate", "terraform.tfstate.backup", "secrets.yaml", "node_modules/a/package.json", ".terraform/mod/main.tf", "pnpm-lock.yaml"]) {
@@ -165,6 +168,155 @@ test("initial generation validates, repairs once, and produces a schema-valid gr
   assert.equal(lessonPlanSchema.parse(lesson).schemaVersion, 2);
   assert.match(lesson.sources[0].url, /\/blob\/a{40}\/compose.yaml#L1-L5$/);
   assert.ok(Number.isFinite(lesson.objects[0].x));
+});
+
+const rejectedDiagram = (draft = "") => new GroqHttpError(400, JSON.stringify({ error: { code: "json_validate_failed", failed_generation: draft } }));
+
+test("a complete valid rejected draft is recovered without another Groq call", async () => {
+  let requests = 0;
+  const lesson = await createRepositoryLesson(fixtureIndex(), "developer", {}, async () => {
+    requests++;
+    throw rejectedDiagram(JSON.stringify(plan()));
+  });
+  assert.equal(requests, 1);
+  assert.equal(lessonPlanSchema.parse(lesson).objects[0].label, plan().nodes[0].label);
+});
+
+test("Gemma-style unsupported categories and wrong coverage recover locally without another model call", async () => {
+  const draft = { ...plan(), coverage: "existing", nodes: [{ ...plan().nodes[0], kind: "library", assetId: "not-a-logo" }] };
+  let requests = 0;
+  const lesson = await createRepositoryLesson(fixtureIndex(), "developer", {}, async () => { requests++; throw rejectedDiagram(JSON.stringify(draft)); });
+  assert.equal(requests, 1);
+  assert.equal(lesson.objects[0].kind, "unknown");
+  assert.equal(lesson.objects[0].assetId, "concept:unknown");
+  assert.equal(lesson.objects[0].label, draft.nodes[0].label);
+  assert.doesNotMatch(lesson.summary, /Basic source overview/);
+  assert.equal(draft.nodes[0].kind, "library");
+  assert.equal(draft.coverage, "existing");
+});
+
+test("presentation repairs never accept fabricated citations, dangling edges, or unknown targets", () => {
+  const draft = { ...plan(), coverage: "existing", nodes: [{ ...plan().nodes[0], kind: "framework", evidenceIds: ["fake-evidence"] }] };
+  assert.throws(() => validateExplanation(normalizeExplanationPresentation(draft), evidence), /Unknown node evidence/);
+  assert.throws(() => validateExplanation(normalizeExplanationPresentation({ ...plan(), edges: [{ id: "broken", from: "api", to: "missing", label: "calls", evidenceIds: ["e1"], certainty: "declared" }] }), evidence), /Invalid connection/);
+  assert.throws(() => validateExplanation(normalizeExplanationPresentation({ ...plan(), steps: [{ ...plan().steps[0], targetIds: ["missing"] }] }), evidence), /Invalid explanation target/);
+});
+
+test("a rejected ungrounded draft gets one bounded JSON-mode recovery with full validation", async () => {
+  let requests = 0;
+  const ungrounded = plan(); ungrounded.nodes[0].evidenceIds = ["invented-source"];
+  const lesson = await createRepositoryLesson(fixtureIndex(), "developer", {}, async (_path, init) => {
+    const body = String(init.body), request = JSON.parse(body);
+    assert.ok(Buffer.byteLength(body) <= 14000);
+    assert.equal(request.max_completion_tokens, 3000);
+    assert.equal(request.model, "openai/gpt-oss-120b");
+    if (++requests === 1) {
+      assert.equal(request.response_format.type, "json_schema");
+      throw rejectedDiagram(JSON.stringify(ungrounded));
+    }
+    assert.equal(request.response_format.type, "json_object");
+    assert.match(request.messages[0].content, /additionalProperties/);
+    assert.match(request.messages[0].content, /at most 4 nodes/);
+    assert.doesNotMatch(body, /invented-source/);
+    return Response.json({ choices: [{ message: { content: JSON.stringify(plan()) } }] });
+  });
+  assert.equal(requests, 2);
+  assert.deepEqual(lesson.objects[0].evidenceIds, ["e1"]);
+});
+
+test("repeated generation failures stop after two calls and return an explicitly limited source overview", async () => {
+  for (const failure of ["provider", "validation"]) {
+    let requests = 0;
+    const ungrounded = plan(); ungrounded.steps[0].targetIds = ["missing-node"];
+    const lesson = await createRepositoryLesson(fixtureIndex(), "developer", {}, async () => {
+      requests++;
+      if (requests === 1 || failure === "provider") throw rejectedDiagram();
+      return Response.json({ choices: [{ message: { content: JSON.stringify(ungrounded) } }] });
+    });
+    assert.equal(requests, 2);
+    lessonPlanSchema.parse(lesson);
+    assert.match(lesson.summary, /Basic source overview/);
+    assert.match(lesson.summary, /could not be validated/);
+    assert.doesNotMatch(JSON.stringify(lesson), /missing-node|Handles requests/);
+    assert.ok(lesson.objects.every(node => node.evidenceIds?.every(id => evidence.some(source => source.id === id))));
+  }
+});
+
+test("basic diagrams only connect parsed Compose startup dependencies", () => {
+  const index = fixtureIndex();
+  index.evidence = [
+    { ...evidence[0], id: "e1", text: 'service api: {"image":"node:22","depends_on":["db"]}' },
+    { ...evidence[0], id: "e2", text: 'service db: {"image":"postgres:17","networks":["shared"]}' },
+    { ...evidence[0], id: "e3", text: 'service cache: {"image":"redis:7","networks":["shared"]}' },
+  ];
+  const result = validateExplanation(basicExplanation(index, index.evidence), index.evidence);
+  assert.equal(result.edges.length, 1);
+  assert.equal(result.edges[0].label, "Startup dependency");
+  assert.equal(result.nodes.find(node => node.id === result.edges[0].from)?.label, "api");
+  assert.equal(result.nodes.find(node => node.id === result.edges[0].to)?.label, "db");
+  assert.ok(result.nodes.every(node => node.kind === "container"));
+});
+
+test("basic follow-ups preserve the diagram and disclose that excerpts may not answer the question", async () => {
+  const current = await layoutArchitecture(fixtureLesson());
+  const before = structuredClone(current);
+  let requests = 0;
+  const reply = await createRepositoryFollowUp(fixtureIndex(), "How much does hosting cost?", current, "leadership", {}, async () => { requests++; throw rejectedDiagram(); });
+  assert.equal(requests, 2);
+  assert.equal(reply.coverage, "existing");
+  assert.deepEqual(reply.objects, []);
+  assert.deepEqual(reply.connections, []);
+  assert.match(reply.answer, /not a verified answer/);
+  assert.deepEqual(current, before);
+  followUpPlanSchema.parse(reply);
+  mergeFollowUpLesson(current, reply);
+});
+
+test("basic source explanations tolerate long filenames and truncated declarations", () => {
+  const index = fixtureIndex();
+  index.evidence = [{ ...evidence[0], path: "docs/" + "a".repeat(1900) + "/README.md", text: 'service api: {"image":' }];
+  const result = validateExplanation(basicExplanation(index, index.evidence), index.evidence);
+  assert.equal(result.nodes[0].kind, "document");
+  assert.equal(result.edges.length, 0);
+});
+
+test("unrelated provider failures are not retried as malformed diagram output", async () => {
+  for (const error of [new GroqHttpError(400, '{"error":{"code":"invalid_json_schema"}}'), new GroqHttpError(429, "rate limit"), new GroqHttpError(401, "unauthorized")]) {
+    let requests = 0;
+    await assert.rejects(createRepositoryLesson(fixtureIndex(), "developer", {}, async () => { requests++; throw error; }), e => e === error);
+    assert.equal(requests, 1);
+  }
+});
+
+test("cancelling after a rejected diagram prevents the recovery call", async () => {
+  const controller = new AbortController();
+  let requests = 0;
+  await assert.rejects(createRepositoryLesson(fixtureIndex(), "developer", { signal: controller.signal }, async () => {
+    requests++; controller.abort(); throw rejectedDiagram();
+  }), { name: "AbortError" });
+  assert.equal(requests, 1);
+});
+
+test("truncated completions are not committed and explicit refusals are not retried", async () => {
+  let requests = 0;
+  await createRepositoryLesson(fixtureIndex(), "developer", {}, async () => Response.json({ choices: [{ finish_reason: ++requests === 1 ? "length" : "stop", message: { content: JSON.stringify(plan()) } }] }));
+  assert.equal(requests, 2);
+  requests = 0;
+  await assert.rejects(createRepositoryLesson(fixtureIndex(), "developer", {}, async () => {
+    requests++;
+    return Response.json({ choices: [{ finish_reason: "content_filter", message: { content: JSON.stringify(plan()), refusal: "Declined" } }] });
+  }), ProviderResponseError);
+  assert.equal(requests, 1);
+});
+
+test("malformed response envelopes use the source overview without publishing invalid content", async () => {
+  for (const body of ["not JSON", "null", '{"choices":[{"message":{"content":{"unexpected":"value"}}}]}']) {
+    let requests = 0;
+    const lesson = await createRepositoryLesson(fixtureIndex(), "developer", {}, async () => { requests++; return new Response(body); });
+    assert.equal(requests, 2);
+    assert.match(lesson.summary, /Basic source overview/);
+    lessonPlanSchema.parse(lesson);
+  }
 });
 
 test("follow-up generation reuses context and can append a grounded component without moving existing nodes", async () => {

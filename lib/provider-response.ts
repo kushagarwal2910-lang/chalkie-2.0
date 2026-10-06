@@ -1,4 +1,5 @@
-import { GroqFreeLimitError, GroqHttpError, type GroqQuotaSnapshot } from "./groq-pool";
+import { GroqFreeLimitError, GroqHttpError, type GroqQuotaSnapshot } from "./groq-pool-core";
+import { groqErrorDetails } from "./groq-errors";
 import { RepositoryError } from "./architecture/types";
 
 export interface ProviderFailure {
@@ -33,7 +34,16 @@ export function providerFailure(error: unknown, latestQuota?: GroqQuotaSnapshot)
     return { status: 502, failure: { code: "INVALID_PROVIDER_RESPONSE", message: "The provider returned an incomplete or invalid result. Please retry your request.", retryable: true, ...retry } };
   }
   if (error instanceof GroqHttpError) {
-    return { status: error.status === 429 ? 429 : 502, failure: { code: "PROVIDER_ERROR", message: "The provider could not complete this request. Check your provider settings or retry.", retryable: true, ...retry } };
+    const { category } = groqErrorDetails(error);
+    const messages: Record<string, string> = {
+      invalid_output: "Groq could not finish a valid diagram response. Your keys were not rejected. Retry the explanation.",
+      request_size: "Groq rejected the explanation request because it exceeded a size limit. Try a more focused question or shorter supporting notes.",
+      invalid_schema: "Groq rejected Chalkie's diagram format. This is an app compatibility issue; adding API keys will not fix it.",
+      model_unavailable: "The explanation model is unavailable or not accessible in your Groq project. Check the project's model access.",
+      request_rejected: "Groq rejected Chalkie's explanation request (HTTP " + error.status + "). This does not mean your API keys are exhausted.",
+      unavailable: "Groq could not complete the explanation (HTTP " + error.status + "). Please retry.",
+    };
+    return { status: error.status === 429 ? 429 : 502, failure: { code: "PROVIDER_" + category.toUpperCase(), message: messages[category], retryable: ["invalid_output", "unavailable"].includes(category), ...retry } };
   }
   return { status: 502, failure: { code: "GENERATION_FAILED", message: "Chalkie could not complete this request. Your current board has been kept. Please retry.", retryable: true, ...retry } };
 }

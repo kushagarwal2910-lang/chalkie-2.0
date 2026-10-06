@@ -1,5 +1,6 @@
 import { resolveProviderCredentials } from "./provider-credentials";
-import { GroqPool, type GroqCallOptions } from "./groq-pool-core.ts";
+import { GroqPool, GroqHttpError, type GroqCallOptions } from "./groq-pool-core.ts";
+import { groqErrorDetails } from "./groq-errors";
 
 export {
   GroqFreeLimitError, GroqHttpError, GroqRequestTimeoutError,
@@ -18,5 +19,9 @@ export async function getGroqQuotaSnapshot(sessionId?: string, _preferredKeyId?:
 
 export async function groqFetch(path: string, init: RequestInit, options: GroqCallOptions = {}) {
   const credentials = await resolveProviderCredentials();
-  return pool.fetch(credentials.groqKeys, credentials.source, path, init, options);
+  try { return await pool.fetch(credentials.groqKeys, credentials.source, path, init, options); }
+  catch (error) {
+    if (error instanceof GroqHttpError) console.warn("[chalkie:groq]", JSON.stringify(groqErrorDetails(error)));
+    throw error;
+  }
 }
