@@ -1,0 +1,3905 @@
+[
+  {
+    "id": "tech:amazonwebservices",
+    "name": "Amazon Web Services",
+    "aliases": [
+      "amazonwebservices",
+      "aws",
+      "aws_s3_bucket",
+      "aws_instance",
+      "aws_rds_instance"
+    ],
+    "categories": [
+      "cloud",
+      "hosting",
+      "server"
+    ],
+    "description": "Technology identity for Amazon Web Services. Use only when named in repository evidence.",
+    "path": "/architecture-assets/amazonwebservices.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/amazonwebservices",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:anaconda",
+    "name": "anaconda",
+    "aliases": [
+      "anaconda"
+    ],
+    "categories": [
+      "python",
+      "data-science"
+    ],
+    "description": "Technology identity for anaconda. Use only when named in repository evidence.",
+    "path": "/architecture-assets/anaconda.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/anaconda",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:android",
+    "name": "android",
+    "aliases": [
+      "android"
+    ],
+    "categories": [
+      "os",
+      "mobile"
+    ],
+    "description": "Technology identity for android. Use only when named in repository evidence.",
+    "path": "/architecture-assets/android.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/android",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:angular",
+    "name": "angular",
+    "aliases": [
+      "angular"
+    ],
+    "categories": [
+      "framework",
+      "javascript"
+    ],
+    "description": "Technology identity for angular. Use only when named in repository evidence.",
+    "path": "/architecture-assets/angular.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/angular",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:ansible",
+    "name": "ansible",
+    "aliases": [
+      "ansible"
+    ],
+    "categories": [
+      "automation",
+      "provisioning",
+      "deployment",
+      "continuous-delivery"
+    ],
+    "description": "Technology identity for ansible. Use only when named in repository evidence.",
+    "path": "/architecture-assets/ansible.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/ansible",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:apache",
+    "name": "apache",
+    "aliases": [
+      "apache",
+      "The Apache Software Foundation",
+      ""
+    ],
+    "categories": [
+      "php"
+    ],
+    "description": "Technology identity for apache. Use only when named in repository evidence.",
+    "path": "/architecture-assets/apache.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/apache",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:apacheairflow",
+    "name": "apacheairflow",
+    "aliases": [
+      "apacheairflow",
+      "Airflow",
+      "airflow"
+    ],
+    "categories": [
+      "platform",
+      "pipeline",
+      "orchestrator",
+      "open-source"
+    ],
+    "description": "Technology identity for apacheairflow. Use only when named in repository evidence.",
+    "path": "/architecture-assets/apacheairflow.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/apacheairflow",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:apachekafka",
+    "name": "Apache Kafka",
+    "aliases": [
+      "apachekafka",
+      "kafka"
+    ],
+    "categories": [
+      "streaming",
+      "open-source"
+    ],
+    "description": "Technology identity for Apache Kafka. Use only when named in repository evidence.",
+    "path": "/architecture-assets/apachekafka.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/apachekafka",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:apachespark",
+    "name": "apachespark",
+    "aliases": [
+      "apachespark",
+      "spark"
+    ],
+    "categories": [
+      "data-processing",
+      "data-science",
+      "machine-learning"
+    ],
+    "description": "Technology identity for apachespark. Use only when named in repository evidence.",
+    "path": "/architecture-assets/apachespark.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/apachespark",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:apollographql",
+    "name": "apollographql",
+    "aliases": [
+      "apollographql",
+      "Apollo"
+    ],
+    "categories": [
+      "platform",
+      "graphql",
+      "api"
+    ],
+    "description": "Technology identity for apollographql. Use only when named in repository evidence.",
+    "path": "/architecture-assets/apollographql.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/apollographql",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:apple",
+    "name": "apple",
+    "aliases": [
+      "apple"
+    ],
+    "categories": [
+      "brand",
+      "mobile"
+    ],
+    "description": "Technology identity for apple. Use only when named in repository evidence.",
+    "path": "/architecture-assets/apple.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/apple",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:appwrite",
+    "name": "appwrite",
+    "aliases": [
+      "appwrite"
+    ],
+    "categories": [
+      "cloud",
+      "platform",
+      "server"
+    ],
+    "description": "Technology identity for appwrite. Use only when named in repository evidence.",
+    "path": "/architecture-assets/appwrite.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/appwrite",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:argocd",
+    "name": "argocd",
+    "aliases": [
+      "argocd"
+    ],
+    "categories": [
+      "gitops",
+      "continuous-delivery"
+    ],
+    "description": "Technology identity for argocd. Use only when named in repository evidence.",
+    "path": "/architecture-assets/argocd.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/argocd",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:astro",
+    "name": "astro",
+    "aliases": [
+      "astro"
+    ],
+    "categories": [
+      "static site generator",
+      "framework",
+      "web-development"
+    ],
+    "description": "Technology identity for astro. Use only when named in repository evidence.",
+    "path": "/architecture-assets/astro.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/astro",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:azure",
+    "name": "azure",
+    "aliases": [
+      "azure",
+      "microsoftazure"
+    ],
+    "categories": [
+      "cloud",
+      "devops"
+    ],
+    "description": "Technology identity for azure. Use only when named in repository evidence.",
+    "path": "/architecture-assets/azure.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/azure",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:azuredevops",
+    "name": "azuredevops",
+    "aliases": [
+      "azuredevops",
+      "azure-devops"
+    ],
+    "categories": [
+      "azure",
+      "devops",
+      "cloud",
+      "version control",
+      "vcs"
+    ],
+    "description": "Technology identity for azuredevops. Use only when named in repository evidence.",
+    "path": "/architecture-assets/azuredevops.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/azuredevops",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:azuresqldatabase",
+    "name": "azuresqldatabase",
+    "aliases": [
+      "azuresqldatabase",
+      "azure-sql-database"
+    ],
+    "categories": [
+      "azure",
+      "database",
+      "tool",
+      "sql"
+    ],
+    "description": "Technology identity for azuresqldatabase. Use only when named in repository evidence.",
+    "path": "/architecture-assets/azuresqldatabase.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/azuresqldatabase",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:babel",
+    "name": "babel",
+    "aliases": [
+      "babel",
+      "babeljs"
+    ],
+    "categories": [
+      "javascript",
+      "transpiler"
+    ],
+    "description": "Technology identity for babel. Use only when named in repository evidence.",
+    "path": "/architecture-assets/babel.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/babel",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:bamboo",
+    "name": "bamboo",
+    "aliases": [
+      "bamboo",
+      "atlassianbamboo"
+    ],
+    "categories": [
+      "platform",
+      "integration",
+      "server"
+    ],
+    "description": "Technology identity for bamboo. Use only when named in repository evidence.",
+    "path": "/architecture-assets/bamboo.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/bamboo",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:bash",
+    "name": "bash",
+    "aliases": [
+      "bash",
+      "bourneagainshell"
+    ],
+    "categories": [
+      "shell",
+      "command",
+      "scripting"
+    ],
+    "description": "Technology identity for bash. Use only when named in repository evidence.",
+    "path": "/architecture-assets/bash.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/bash",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:bitbucket",
+    "name": "bitbucket",
+    "aliases": [
+      "bitbucket",
+      "atlassianbitbucket"
+    ],
+    "categories": [
+      "version-control"
+    ],
+    "description": "Technology identity for bitbucket. Use only when named in repository evidence.",
+    "path": "/architecture-assets/bitbucket.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/bitbucket",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:bootstrap",
+    "name": "bootstrap",
+    "aliases": [
+      "bootstrap"
+    ],
+    "categories": [
+      "css",
+      "framework",
+      "html",
+      "javascript",
+      "library"
+    ],
+    "description": "Technology identity for bootstrap. Use only when named in repository evidence.",
+    "path": "/architecture-assets/bootstrap.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/bootstrap",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:browserstack",
+    "name": "browserstack",
+    "aliases": [
+      "browserstack"
+    ],
+    "categories": [
+      "website",
+      "app",
+      "testing",
+      "tool"
+    ],
+    "description": "Technology identity for browserstack. Use only when named in repository evidence.",
+    "path": "/architecture-assets/browserstack.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/browserstack",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:bun",
+    "name": "bun",
+    "aliases": [
+      "bun"
+    ],
+    "categories": [
+      "javascript",
+      "zig",
+      "language"
+    ],
+    "description": "Technology identity for bun. Use only when named in repository evidence.",
+    "path": "/architecture-assets/bun.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/bun",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:c",
+    "name": "c",
+    "aliases": [
+      "c"
+    ],
+    "categories": [
+      "language"
+    ],
+    "description": "Technology identity for c. Use only when named in repository evidence.",
+    "path": "/architecture-assets/c.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/c",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:capacitor",
+    "name": "capacitor",
+    "aliases": [
+      "capacitor",
+      "capacitorjs"
+    ],
+    "categories": [
+      "javascript",
+      "js",
+      "ionic",
+      "framework",
+      "universal"
+    ],
+    "description": "Technology identity for capacitor. Use only when named in repository evidence.",
+    "path": "/architecture-assets/capacitor.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/capacitor",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:cassandra",
+    "name": "cassandra",
+    "aliases": [
+      "cassandra",
+      "Apache Cassandra"
+    ],
+    "categories": [
+      "nosql",
+      "database",
+      "open-source"
+    ],
+    "description": "Technology identity for cassandra. Use only when named in repository evidence.",
+    "path": "/architecture-assets/cassandra.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/cassandra",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:centos",
+    "name": "centos",
+    "aliases": [
+      "centos"
+    ],
+    "categories": [
+      "server",
+      "linux"
+    ],
+    "description": "Technology identity for centos. Use only when named in repository evidence.",
+    "path": "/architecture-assets/centos.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/centos",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:chakraui",
+    "name": "chakraui",
+    "aliases": [
+      "chakraui",
+      "chakra ui"
+    ],
+    "categories": [
+      "ui",
+      "library"
+    ],
+    "description": "Technology identity for chakraui. Use only when named in repository evidence.",
+    "path": "/architecture-assets/chakraui.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/chakraui",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:chartjs",
+    "name": "chartjs",
+    "aliases": [
+      "chartjs",
+      "chart.js"
+    ],
+    "categories": [
+      "javascript",
+      "chart",
+      "framework"
+    ],
+    "description": "Technology identity for chartjs. Use only when named in repository evidence.",
+    "path": "/architecture-assets/chartjs.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/chartjs",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:circleci",
+    "name": "circleci",
+    "aliases": [
+      "circleci"
+    ],
+    "categories": [
+      "integration",
+      "platform"
+    ],
+    "description": "Technology identity for circleci. Use only when named in repository evidence.",
+    "path": "/architecture-assets/circleci.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/circleci",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:clickhouse",
+    "name": "clickhouse",
+    "aliases": [
+      "clickhouse"
+    ],
+    "categories": [
+      "cloud",
+      "column-oriented",
+      "database",
+      "warehouse"
+    ],
+    "description": "Technology identity for clickhouse. Use only when named in repository evidence.",
+    "path": "/architecture-assets/clickhouse.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/clickhouse",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:clojure",
+    "name": "clojure",
+    "aliases": [
+      "clojure"
+    ],
+    "categories": [
+      "language",
+      "jvm"
+    ],
+    "description": "Technology identity for clojure. Use only when named in repository evidence.",
+    "path": "/architecture-assets/clojure.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/clojure",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:cloudflare",
+    "name": "cloudflare",
+    "aliases": [
+      "cloudflare"
+    ],
+    "categories": [
+      "web",
+      "cdn",
+      "dns",
+      "proxy",
+      "security"
+    ],
+    "description": "Technology identity for cloudflare. Use only when named in repository evidence.",
+    "path": "/architecture-assets/cloudflare.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/cloudflare",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:cloudflareworkers",
+    "name": "cloudflareworkers",
+    "aliases": [
+      "cloudflareworkers",
+      "Cloudflare Workers"
+    ],
+    "categories": [
+      "platform",
+      "serverless",
+      "deploy",
+      "performance",
+      "javascript"
+    ],
+    "description": "Technology identity for cloudflareworkers. Use only when named in repository evidence.",
+    "path": "/architecture-assets/cloudflareworkers.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/cloudflareworkers",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:cloudrun",
+    "name": "cloudrun",
+    "aliases": [
+      "cloudrun",
+      "Cloud Run"
+    ],
+    "categories": [
+      "platform",
+      "serverless",
+      "deploy",
+      "cloud-computing-platform"
+    ],
+    "description": "Technology identity for cloudrun. Use only when named in repository evidence.",
+    "path": "/architecture-assets/cloudrun.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/cloudrun",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:codecov",
+    "name": "codecov",
+    "aliases": [
+      "codecov"
+    ],
+    "categories": [
+      "platform",
+      "integration"
+    ],
+    "description": "Technology identity for codecov. Use only when named in repository evidence.",
+    "path": "/architecture-assets/codecov.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/codecov",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:composer",
+    "name": "composer",
+    "aliases": [
+      "composer"
+    ],
+    "categories": [
+      "package",
+      "manager",
+      "php"
+    ],
+    "description": "Technology identity for composer. Use only when named in repository evidence.",
+    "path": "/architecture-assets/composer.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/composer",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:confluence",
+    "name": "confluence",
+    "aliases": [
+      "confluence",
+      "atlassianconfluence"
+    ],
+    "categories": [
+      "collaboration",
+      "documentation",
+      "wiki"
+    ],
+    "description": "Technology identity for confluence. Use only when named in repository evidence.",
+    "path": "/architecture-assets/confluence.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/confluence",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:consul",
+    "name": "consul",
+    "aliases": [
+      "consul",
+      "HashiCorp Consul"
+    ],
+    "categories": [
+      "networking",
+      "infrastructure",
+      "security",
+      "tool"
+    ],
+    "description": "Technology identity for consul. Use only when named in repository evidence.",
+    "path": "/architecture-assets/consul.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/consul",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:cosmosdb",
+    "name": "cosmosdb",
+    "aliases": [
+      "cosmosdb",
+      "azurecosmosdb"
+    ],
+    "categories": [
+      "database",
+      "nosql",
+      "cloud",
+      "azure"
+    ],
+    "description": "Technology identity for cosmosdb. Use only when named in repository evidence.",
+    "path": "/architecture-assets/cosmosdb.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/cosmosdb",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:couchbase",
+    "name": "couchbase",
+    "aliases": [
+      "couchbase"
+    ],
+    "categories": [
+      "database",
+      "nosql",
+      "cloud"
+    ],
+    "description": "Technology identity for couchbase. Use only when named in repository evidence.",
+    "path": "/architecture-assets/couchbase.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/couchbase",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:couchdb",
+    "name": "couchdb",
+    "aliases": [
+      "couchdb",
+      "apachecouchdb"
+    ],
+    "categories": [
+      "database"
+    ],
+    "description": "Technology identity for couchdb. Use only when named in repository evidence.",
+    "path": "/architecture-assets/couchdb.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/couchdb",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:cplusplus",
+    "name": "cplusplus",
+    "aliases": [
+      "cplusplus",
+      "c++",
+      "cpp"
+    ],
+    "categories": [
+      "language"
+    ],
+    "description": "Technology identity for cplusplus. Use only when named in repository evidence.",
+    "path": "/architecture-assets/cplusplus.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/cplusplus",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:csharp",
+    "name": "csharp",
+    "aliases": [
+      "csharp",
+      "c#"
+    ],
+    "categories": [
+      "language"
+    ],
+    "description": "Technology identity for csharp. Use only when named in repository evidence.",
+    "path": "/architecture-assets/csharp.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/csharp",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:css3",
+    "name": "css3",
+    "aliases": [
+      "css3",
+      "cascadingstylesheets3"
+    ],
+    "categories": [
+      "language",
+      "programming"
+    ],
+    "description": "Technology identity for css3. Use only when named in repository evidence.",
+    "path": "/architecture-assets/css3.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/css3",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:cucumber",
+    "name": "cucumber",
+    "aliases": [
+      "cucumber",
+      "cucumberjs"
+    ],
+    "categories": [
+      "framework"
+    ],
+    "description": "Technology identity for cucumber. Use only when named in repository evidence.",
+    "path": "/architecture-assets/cucumber.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/cucumber",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:cypressio",
+    "name": "cypressio",
+    "aliases": [
+      "cypressio",
+      "cypress"
+    ],
+    "categories": [
+      "testing",
+      "framework"
+    ],
+    "description": "Technology identity for cypressio. Use only when named in repository evidence.",
+    "path": "/architecture-assets/cypressio.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/cypressio",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:d3js",
+    "name": "d3js",
+    "aliases": [
+      "d3js"
+    ],
+    "categories": [],
+    "description": "Technology identity for d3js. Use only when named in repository evidence.",
+    "path": "/architecture-assets/d3js.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/d3js",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:dart",
+    "name": "dart",
+    "aliases": [
+      "dart",
+      "googledart"
+    ],
+    "categories": [
+      "programming",
+      "language"
+    ],
+    "description": "Technology identity for dart. Use only when named in repository evidence.",
+    "path": "/architecture-assets/dart.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/dart",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:datadog",
+    "name": "datadog",
+    "aliases": [
+      "datadog"
+    ],
+    "categories": [
+      "monitoring",
+      "platform",
+      "integration"
+    ],
+    "description": "Technology identity for datadog. Use only when named in repository evidence.",
+    "path": "/architecture-assets/datadog.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/datadog",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:datagrip",
+    "name": "datagrip",
+    "aliases": [
+      "datagrip"
+    ],
+    "categories": [
+      "jetbrains",
+      "ide",
+      "sql",
+      "database"
+    ],
+    "description": "Technology identity for datagrip. Use only when named in repository evidence.",
+    "path": "/architecture-assets/datagrip.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/datagrip",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:debian",
+    "name": "debian",
+    "aliases": [
+      "debian"
+    ],
+    "categories": [
+      "os",
+      "server"
+    ],
+    "description": "Technology identity for debian. Use only when named in repository evidence.",
+    "path": "/architecture-assets/debian.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/debian",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:denojs",
+    "name": "denojs",
+    "aliases": [
+      "denojs"
+    ],
+    "categories": [
+      "javascript",
+      "rust",
+      "runtime"
+    ],
+    "description": "Technology identity for denojs. Use only when named in repository evidence.",
+    "path": "/architecture-assets/denojs.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/denojs",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:digitalocean",
+    "name": "digitalocean",
+    "aliases": [
+      "digitalocean"
+    ],
+    "categories": [
+      "cloud",
+      "hosting",
+      "database",
+      "storage"
+    ],
+    "description": "Technology identity for digitalocean. Use only when named in repository evidence.",
+    "path": "/architecture-assets/digitalocean.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/digitalocean",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:django",
+    "name": "django",
+    "aliases": [
+      "django"
+    ],
+    "categories": [],
+    "description": "Technology identity for django. Use only when named in repository evidence.",
+    "path": "/architecture-assets/django.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/django",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:djangorest",
+    "name": "djangorest",
+    "aliases": [
+      "djangorest",
+      "Django REST framework"
+    ],
+    "categories": [
+      "framework",
+      "rest",
+      "api",
+      "python",
+      "web"
+    ],
+    "description": "Technology identity for djangorest. Use only when named in repository evidence.",
+    "path": "/architecture-assets/djangorest.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/djangorest",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:docker",
+    "name": "docker",
+    "aliases": [
+      "docker"
+    ],
+    "categories": [
+      "platform",
+      "deploy"
+    ],
+    "description": "Technology identity for docker. Use only when named in repository evidence.",
+    "path": "/architecture-assets/docker.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/docker",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:dot-net",
+    "name": "dot-net",
+    "aliases": [
+      "dot-net",
+      "dotnet",
+      ".net"
+    ],
+    "categories": [
+      "framework"
+    ],
+    "description": "Technology identity for dot-net. Use only when named in repository evidence.",
+    "path": "/architecture-assets/dot-net.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/dot-net",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:dotnetcore",
+    "name": ".NET",
+    "aliases": [
+      "dotnetcore",
+      ".netcore"
+    ],
+    "categories": [
+      "framework"
+    ],
+    "description": "Technology identity for .NET. Use only when named in repository evidence.",
+    "path": "/architecture-assets/dotnetcore.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/dotnetcore",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:duckdb",
+    "name": "duckdb",
+    "aliases": [
+      "duckdb"
+    ],
+    "categories": [
+      "database",
+      "sql"
+    ],
+    "description": "Technology identity for duckdb. Use only when named in repository evidence.",
+    "path": "/architecture-assets/duckdb.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/duckdb",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:dynamodb",
+    "name": "dynamodb",
+    "aliases": [
+      "dynamodb"
+    ],
+    "categories": [
+      "key-value",
+      "database",
+      "java"
+    ],
+    "description": "Technology identity for dynamodb. Use only when named in repository evidence.",
+    "path": "/architecture-assets/dynamodb.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/dynamodb",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:dynatrace",
+    "name": "dynatrace",
+    "aliases": [
+      "dynatrace"
+    ],
+    "categories": [
+      "monitoring",
+      "performance",
+      "cloud"
+    ],
+    "description": "Technology identity for dynatrace. Use only when named in repository evidence.",
+    "path": "/architecture-assets/dynatrace.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/dynatrace",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:elasticsearch",
+    "name": "elasticsearch",
+    "aliases": [
+      "elasticsearch"
+    ],
+    "categories": [
+      "elastic",
+      "data",
+      "logs"
+    ],
+    "description": "Technology identity for elasticsearch. Use only when named in repository evidence.",
+    "path": "/architecture-assets/elasticsearch.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/elasticsearch",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:electron",
+    "name": "electron",
+    "aliases": [
+      "electron",
+      "electronjs"
+    ],
+    "categories": [
+      "framework"
+    ],
+    "description": "Technology identity for electron. Use only when named in repository evidence.",
+    "path": "/architecture-assets/electron.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/electron",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:elixir",
+    "name": "elixir",
+    "aliases": [
+      "elixir",
+      "elexirlang"
+    ],
+    "categories": [
+      "language"
+    ],
+    "description": "Technology identity for elixir. Use only when named in repository evidence.",
+    "path": "/architecture-assets/elixir.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/elixir",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:entityframeworkcore",
+    "name": "entityframeworkcore",
+    "aliases": [
+      "entityframeworkcore",
+      "ef core",
+      "entity framework core"
+    ],
+    "categories": [
+      "dotnet",
+      ".net",
+      "framework",
+      "database"
+    ],
+    "description": "Technology identity for entityframeworkcore. Use only when named in repository evidence.",
+    "path": "/architecture-assets/entityframeworkcore.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/entityframeworkcore",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:envoy",
+    "name": "envoy",
+    "aliases": [
+      "envoy",
+      "envoyproxy"
+    ],
+    "categories": [
+      "proxy",
+      "cloud"
+    ],
+    "description": "Technology identity for envoy. Use only when named in repository evidence.",
+    "path": "/architecture-assets/envoy.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/envoy",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:erlang",
+    "name": "erlang",
+    "aliases": [
+      "erlang"
+    ],
+    "categories": [],
+    "description": "Technology identity for erlang. Use only when named in repository evidence.",
+    "path": "/architecture-assets/erlang.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/erlang",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:expo",
+    "name": "expo",
+    "aliases": [
+      "expo"
+    ],
+    "categories": [
+      "framework",
+      "react",
+      "react-native"
+    ],
+    "description": "Technology identity for expo. Use only when named in repository evidence.",
+    "path": "/architecture-assets/expo.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/expo",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:express",
+    "name": "express",
+    "aliases": [
+      "express",
+      "expressjs"
+    ],
+    "categories": [
+      "framework"
+    ],
+    "description": "Technology identity for express. Use only when named in repository evidence.",
+    "path": "/architecture-assets/express.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/express",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:fastapi",
+    "name": "fastapi",
+    "aliases": [
+      "fastapi"
+    ],
+    "categories": [
+      "python",
+      "framework"
+    ],
+    "description": "Technology identity for fastapi. Use only when named in repository evidence.",
+    "path": "/architecture-assets/fastapi.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/fastapi",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:fastify",
+    "name": "fastify",
+    "aliases": [
+      "fastify"
+    ],
+    "categories": [
+      "framework",
+      "web",
+      "node.js",
+      "javascript",
+      "performance"
+    ],
+    "description": "Technology identity for fastify. Use only when named in repository evidence.",
+    "path": "/architecture-assets/fastify.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/fastify",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:fedora",
+    "name": "fedora",
+    "aliases": [
+      "fedora"
+    ],
+    "categories": [
+      "linux",
+      "distribution",
+      "desktop"
+    ],
+    "description": "Technology identity for fedora. Use only when named in repository evidence.",
+    "path": "/architecture-assets/fedora.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/fedora",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:figma",
+    "name": "figma",
+    "aliases": [
+      "figma"
+    ],
+    "categories": [
+      "design"
+    ],
+    "description": "Technology identity for figma. Use only when named in repository evidence.",
+    "path": "/architecture-assets/figma.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/figma",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:firebase",
+    "name": "firebase",
+    "aliases": [
+      "firebase"
+    ],
+    "categories": [
+      "auth",
+      "hosting",
+      "storage",
+      "cloud"
+    ],
+    "description": "Technology identity for firebase. Use only when named in repository evidence.",
+    "path": "/architecture-assets/firebase.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/firebase",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:flask",
+    "name": "flask",
+    "aliases": [
+      "flask"
+    ],
+    "categories": [
+      "python",
+      "framework"
+    ],
+    "description": "Technology identity for flask. Use only when named in repository evidence.",
+    "path": "/architecture-assets/flask.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/flask",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:flutter",
+    "name": "flutter",
+    "aliases": [
+      "flutter"
+    ],
+    "categories": [
+      "framework",
+      "sdk"
+    ],
+    "description": "Technology identity for flutter. Use only when named in repository evidence.",
+    "path": "/architecture-assets/flutter.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/flutter",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:git",
+    "name": "git",
+    "aliases": [
+      "git"
+    ],
+    "categories": [
+      "version-control"
+    ],
+    "description": "Technology identity for git. Use only when named in repository evidence.",
+    "path": "/architecture-assets/git.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/git",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:github",
+    "name": "github",
+    "aliases": [
+      "github"
+    ],
+    "categories": [
+      "version-control"
+    ],
+    "description": "Technology identity for github. Use only when named in repository evidence.",
+    "path": "/architecture-assets/github.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/github",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:githubactions",
+    "name": "GitHub Actions",
+    "aliases": [
+      "githubactions",
+      "GitHub Actions"
+    ],
+    "categories": [
+      "devops",
+      "integration"
+    ],
+    "description": "Technology identity for GitHub Actions. Use only when named in repository evidence.",
+    "path": "/architecture-assets/githubactions.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/githubactions",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:gitlab",
+    "name": "gitlab",
+    "aliases": [
+      "gitlab"
+    ],
+    "categories": [
+      "version-control"
+    ],
+    "description": "Technology identity for gitlab. Use only when named in repository evidence.",
+    "path": "/architecture-assets/gitlab.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/gitlab",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:go",
+    "name": "go",
+    "aliases": [
+      "go",
+      "golang"
+    ],
+    "categories": [
+      "language"
+    ],
+    "description": "Technology identity for go. Use only when named in repository evidence.",
+    "path": "/architecture-assets/go.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/go",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:goland",
+    "name": "goland",
+    "aliases": [
+      "goland"
+    ],
+    "categories": [
+      "jetbrains",
+      "ide",
+      "go"
+    ],
+    "description": "Technology identity for goland. Use only when named in repository evidence.",
+    "path": "/architecture-assets/goland.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/goland",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:googlecloud",
+    "name": "Google Cloud",
+    "aliases": [
+      "googlecloud",
+      "gcp",
+      "google_compute_instance"
+    ],
+    "categories": [
+      "google",
+      "cloud"
+    ],
+    "description": "Technology identity for Google Cloud. Use only when named in repository evidence.",
+    "path": "/architecture-assets/googlecloud.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/googlecloud",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:googlecolab",
+    "name": "googlecolab",
+    "aliases": [
+      "googlecolab",
+      "googlecolaboratory"
+    ],
+    "categories": [
+      "cloud-computing-platform",
+      "data science",
+      "google",
+      "machine-learning",
+      "python",
+      "virtual machine"
+    ],
+    "description": "Technology identity for googlecolab. Use only when named in repository evidence.",
+    "path": "/architecture-assets/googlecolab.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/googlecolab",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:gradle",
+    "name": "gradle",
+    "aliases": [
+      "gradle",
+      "apachegradle",
+      "gradlebuildtool"
+    ],
+    "categories": [
+      "open-source",
+      "task-runner"
+    ],
+    "description": "Technology identity for gradle. Use only when named in repository evidence.",
+    "path": "/architecture-assets/gradle.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/gradle",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:grafana",
+    "name": "grafana",
+    "aliases": [
+      "grafana"
+    ],
+    "categories": [
+      "monitoring",
+      "analytics",
+      "metrics",
+      "logs",
+      "visualization",
+      "web-application"
+    ],
+    "description": "Technology identity for grafana. Use only when named in repository evidence.",
+    "path": "/architecture-assets/grafana.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/grafana",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:graphql",
+    "name": "graphql",
+    "aliases": [
+      "graphql"
+    ],
+    "categories": [
+      "language",
+      "data",
+      "query"
+    ],
+    "description": "Technology identity for graphql. Use only when named in repository evidence.",
+    "path": "/architecture-assets/graphql.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/graphql",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:grpc",
+    "name": "grpc",
+    "aliases": [
+      "grpc",
+      "grpcio",
+      "Google Remote Procedure Call"
+    ],
+    "categories": [
+      "programming",
+      "c++",
+      "java",
+      "python",
+      "go",
+      "library"
+    ],
+    "description": "Technology identity for grpc. Use only when named in repository evidence.",
+    "path": "/architecture-assets/grpc.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/grpc",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:hadoop",
+    "name": "hadoop",
+    "aliases": [
+      "hadoop",
+      "Apache Hadoop"
+    ],
+    "categories": [
+      "framework",
+      "big data",
+      "open-source",
+      "software",
+      "library",
+      "framework",
+      "java"
+    ],
+    "description": "Technology identity for hadoop. Use only when named in repository evidence.",
+    "path": "/architecture-assets/hadoop.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/hadoop",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:harbor",
+    "name": "harbor",
+    "aliases": [
+      "harbor"
+    ],
+    "categories": [
+      "docker",
+      "artifact",
+      "oci",
+      "registry"
+    ],
+    "description": "Technology identity for harbor. Use only when named in repository evidence.",
+    "path": "/architecture-assets/harbor.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/harbor",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:helm",
+    "name": "helm",
+    "aliases": [
+      "helm"
+    ],
+    "categories": [
+      "package",
+      "manager",
+      "kubernetes"
+    ],
+    "description": "Technology identity for helm. Use only when named in repository evidence.",
+    "path": "/architecture-assets/helm.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/helm",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:heroku",
+    "name": "heroku",
+    "aliases": [
+      "heroku"
+    ],
+    "categories": [
+      "cloud"
+    ],
+    "description": "Technology identity for heroku. Use only when named in repository evidence.",
+    "path": "/architecture-assets/heroku.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/heroku",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:hibernate",
+    "name": "hibernate",
+    "aliases": [
+      "hibernate"
+    ],
+    "categories": [
+      "database",
+      "framework",
+      "java"
+    ],
+    "description": "Technology identity for hibernate. Use only when named in repository evidence.",
+    "path": "/architecture-assets/hibernate.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/hibernate",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:html5",
+    "name": "html5",
+    "aliases": [
+      "html5",
+      "hypertextmarkdownlanguage5"
+    ],
+    "categories": [
+      "programming",
+      "language"
+    ],
+    "description": "Technology identity for html5. Use only when named in repository evidence.",
+    "path": "/architecture-assets/html5.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/html5",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:htmx",
+    "name": "htmx",
+    "aliases": [
+      "htmx",
+      "html ui framework"
+    ],
+    "categories": [
+      "framework",
+      "web",
+      "html",
+      "ui"
+    ],
+    "description": "Technology identity for htmx. Use only when named in repository evidence.",
+    "path": "/architecture-assets/htmx.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/htmx",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:influxdb",
+    "name": "influxdb",
+    "aliases": [
+      "influxdb"
+    ],
+    "categories": [
+      "database",
+      "monitoring",
+      "open-source",
+      "api"
+    ],
+    "description": "Technology identity for influxdb. Use only when named in repository evidence.",
+    "path": "/architecture-assets/influxdb.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/influxdb",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:insomnia",
+    "name": "insomnia",
+    "aliases": [
+      "insomnia",
+      "Insomnia Rest Client"
+    ],
+    "categories": [
+      "open-source",
+      "Rest API",
+      "Soap API",
+      "JSON-XML"
+    ],
+    "description": "Technology identity for insomnia. Use only when named in repository evidence.",
+    "path": "/architecture-assets/insomnia.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/insomnia",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:intellij",
+    "name": "intellij",
+    "aliases": [
+      "intellij",
+      "intellijidea"
+    ],
+    "categories": [
+      "jetbrains",
+      "editor",
+      "java"
+    ],
+    "description": "Technology identity for intellij. Use only when named in repository evidence.",
+    "path": "/architecture-assets/intellij.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/intellij",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:jaegertracing",
+    "name": "jaegertracing",
+    "aliases": [
+      "jaegertracing",
+      "jaeger"
+    ],
+    "categories": [
+      "monitoring",
+      "tracing"
+    ],
+    "description": "Technology identity for jaegertracing. Use only when named in repository evidence.",
+    "path": "/architecture-assets/jaegertracing.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/jaegertracing",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:java",
+    "name": "java",
+    "aliases": [
+      "java"
+    ],
+    "categories": [
+      "programming",
+      "language",
+      "jvm"
+    ],
+    "description": "Technology identity for java. Use only when named in repository evidence.",
+    "path": "/architecture-assets/java.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/java",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:javascript",
+    "name": "javascript",
+    "aliases": [
+      "javascript",
+      "js",
+      "ecmascript"
+    ],
+    "categories": [
+      "programming",
+      "language"
+    ],
+    "description": "Technology identity for javascript. Use only when named in repository evidence.",
+    "path": "/architecture-assets/javascript.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/javascript",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:jenkins",
+    "name": "jenkins",
+    "aliases": [
+      "jenkins",
+      "hudson"
+    ],
+    "categories": [
+      "platform",
+      "integration",
+      "server"
+    ],
+    "description": "Technology identity for jenkins. Use only when named in repository evidence.",
+    "path": "/architecture-assets/jenkins.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/jenkins",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:jest",
+    "name": "jest",
+    "aliases": [
+      "jest",
+      "jestjs"
+    ],
+    "categories": [
+      "testing",
+      "javascript"
+    ],
+    "description": "Technology identity for jest. Use only when named in repository evidence.",
+    "path": "/architecture-assets/jest.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/jest",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:jira",
+    "name": "jira",
+    "aliases": [
+      "jira",
+      "atlassianjira"
+    ],
+    "categories": [
+      "platform",
+      "organize"
+    ],
+    "description": "Technology identity for jira. Use only when named in repository evidence.",
+    "path": "/architecture-assets/jira.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/jira",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:json",
+    "name": "json",
+    "aliases": [
+      "json",
+      "JavaScript Object Notation"
+    ],
+    "categories": [
+      "format",
+      "standard",
+      "file-format",
+      "object-notation"
+    ],
+    "description": "Technology identity for json. Use only when named in repository evidence.",
+    "path": "/architecture-assets/json.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/json",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:julia",
+    "name": "julia",
+    "aliases": [
+      "julia",
+      "julialang"
+    ],
+    "categories": [
+      "programming",
+      "language"
+    ],
+    "description": "Technology identity for julia. Use only when named in repository evidence.",
+    "path": "/architecture-assets/julia.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/julia",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:junit",
+    "name": "junit",
+    "aliases": [
+      "junit"
+    ],
+    "categories": [
+      "testing",
+      "framework",
+      "java"
+    ],
+    "description": "Technology identity for junit. Use only when named in repository evidence.",
+    "path": "/architecture-assets/junit.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/junit",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:jupyter",
+    "name": "jupyter",
+    "aliases": [
+      "jupyter",
+      "jupyternotebook"
+    ],
+    "categories": [
+      "programming",
+      "language"
+    ],
+    "description": "Technology identity for jupyter. Use only when named in repository evidence.",
+    "path": "/architecture-assets/jupyter.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/jupyter",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:k3s",
+    "name": "k3s",
+    "aliases": [
+      "k3s"
+    ],
+    "categories": [
+      "kubernetes",
+      "container",
+      "platform"
+    ],
+    "description": "Technology identity for k3s. Use only when named in repository evidence.",
+    "path": "/architecture-assets/k3s.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/k3s",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:k6",
+    "name": "k6",
+    "aliases": [
+      "k6"
+    ],
+    "categories": [
+      "testing",
+      "performance",
+      "load"
+    ],
+    "description": "Technology identity for k6. Use only when named in repository evidence.",
+    "path": "/architecture-assets/k6.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/k6",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:kaggle",
+    "name": "kaggle",
+    "aliases": [
+      "kaggle"
+    ],
+    "categories": [
+      "platform",
+      "auth",
+      "machine-learning"
+    ],
+    "description": "Technology identity for kaggle. Use only when named in repository evidence.",
+    "path": "/architecture-assets/kaggle.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/kaggle",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:keras",
+    "name": "keras",
+    "aliases": [
+      "keras"
+    ],
+    "categories": [
+      "machine-learning",
+      "python",
+      "library"
+    ],
+    "description": "Technology identity for keras. Use only when named in repository evidence.",
+    "path": "/architecture-assets/keras.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/keras",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:kibana",
+    "name": "kibana",
+    "aliases": [
+      "kibana"
+    ],
+    "categories": [
+      "elastic",
+      "dashboard"
+    ],
+    "description": "Technology identity for kibana. Use only when named in repository evidence.",
+    "path": "/architecture-assets/kibana.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/kibana",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:knexjs",
+    "name": "knexjs",
+    "aliases": [
+      "knexjs"
+    ],
+    "categories": [
+      "database",
+      "query",
+      "sql",
+      "javascript",
+      "library"
+    ],
+    "description": "Technology identity for knexjs. Use only when named in repository evidence.",
+    "path": "/architecture-assets/knexjs.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/knexjs",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:kotlin",
+    "name": "kotlin",
+    "aliases": [
+      "kotlin",
+      "kotlinlang"
+    ],
+    "categories": [
+      "language",
+      "jetbrains",
+      "jvm"
+    ],
+    "description": "Technology identity for kotlin. Use only when named in repository evidence.",
+    "path": "/architecture-assets/kotlin.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/kotlin",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:kubeflow",
+    "name": "kubeflow",
+    "aliases": [
+      "kubeflow"
+    ],
+    "categories": [
+      "kubernetes",
+      "deployment",
+      "machine-learning"
+    ],
+    "description": "Technology identity for kubeflow. Use only when named in repository evidence.",
+    "path": "/architecture-assets/kubeflow.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/kubeflow",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:kubernetes",
+    "name": "kubernetes",
+    "aliases": [
+      "kubernetes",
+      "k8s"
+    ],
+    "categories": [
+      "container",
+      "deployment"
+    ],
+    "description": "Technology identity for kubernetes. Use only when named in repository evidence.",
+    "path": "/architecture-assets/kubernetes.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/kubernetes",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:laravel",
+    "name": "laravel",
+    "aliases": [
+      "laravel"
+    ],
+    "categories": [
+      "php",
+      "framework"
+    ],
+    "description": "Technology identity for laravel. Use only when named in repository evidence.",
+    "path": "/architecture-assets/laravel.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/laravel",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:less",
+    "name": "less",
+    "aliases": [
+      "less",
+      "lesscss"
+    ],
+    "categories": [
+      "css",
+      "pre-processor"
+    ],
+    "description": "Technology identity for less. Use only when named in repository evidence.",
+    "path": "/architecture-assets/less.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/less",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:linux",
+    "name": "linux",
+    "aliases": [
+      "linux"
+    ],
+    "categories": [
+      "os"
+    ],
+    "description": "Technology identity for linux. Use only when named in repository evidence.",
+    "path": "/architecture-assets/linux.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/linux",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:liquibase",
+    "name": "liquibase",
+    "aliases": [
+      "liquibase"
+    ],
+    "categories": [
+      "tool",
+      "database"
+    ],
+    "description": "Technology identity for liquibase. Use only when named in repository evidence.",
+    "path": "/architecture-assets/liquibase.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/liquibase",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:logstash",
+    "name": "logstash",
+    "aliases": [
+      "logstash"
+    ],
+    "categories": [
+      "logs",
+      "elastic"
+    ],
+    "description": "Technology identity for logstash. Use only when named in repository evidence.",
+    "path": "/architecture-assets/logstash.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/logstash",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:mariadb",
+    "name": "mariadb",
+    "aliases": [
+      "mariadb"
+    ],
+    "categories": [
+      "database",
+      "sql",
+      "open-source"
+    ],
+    "description": "Technology identity for mariadb. Use only when named in repository evidence.",
+    "path": "/architecture-assets/mariadb.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/mariadb",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:markdown",
+    "name": "markdown",
+    "aliases": [
+      "markdown",
+      "md"
+    ],
+    "categories": [
+      "markup",
+      "language"
+    ],
+    "description": "Technology identity for markdown. Use only when named in repository evidence.",
+    "path": "/architecture-assets/markdown.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/markdown",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:materialui",
+    "name": "materialui",
+    "aliases": [
+      "materialui",
+      "mui"
+    ],
+    "categories": [
+      "framework",
+      "design",
+      "ui"
+    ],
+    "description": "Technology identity for materialui. Use only when named in repository evidence.",
+    "path": "/architecture-assets/materialui.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/materialui",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:matplotlib",
+    "name": "matplotlib",
+    "aliases": [
+      "matplotlib"
+    ],
+    "categories": [
+      "plotting",
+      "library",
+      "math",
+      "visualization",
+      "python",
+      "api"
+    ],
+    "description": "Technology identity for matplotlib. Use only when named in repository evidence.",
+    "path": "/architecture-assets/matplotlib.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/matplotlib",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:maven",
+    "name": "maven",
+    "aliases": [
+      "maven",
+      "apachemaven",
+      "mvn"
+    ],
+    "categories": [
+      "build"
+    ],
+    "description": "Technology identity for maven. Use only when named in repository evidence.",
+    "path": "/architecture-assets/maven.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/maven",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:memcached",
+    "name": "memcached",
+    "aliases": [
+      "memcached"
+    ],
+    "categories": [
+      "data",
+      "database",
+      "nosql"
+    ],
+    "description": "Technology identity for memcached. Use only when named in repository evidence.",
+    "path": "/architecture-assets/memcached.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/memcached",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:microsoftsqlserver",
+    "name": "microsoftsqlserver",
+    "aliases": [
+      "microsoftsqlserver",
+      "mssql",
+      "sqlserver",
+      "msql",
+      "Microsoft SQL Server"
+    ],
+    "categories": [
+      "database",
+      "sql",
+      "db"
+    ],
+    "description": "Technology identity for microsoftsqlserver. Use only when named in repository evidence.",
+    "path": "/architecture-assets/microsoftsqlserver.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/microsoftsqlserver",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:mocha",
+    "name": "mocha",
+    "aliases": [
+      "mocha"
+    ],
+    "categories": [
+      "testing"
+    ],
+    "description": "Technology identity for mocha. Use only when named in repository evidence.",
+    "path": "/architecture-assets/mocha.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/mocha",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:mongodb",
+    "name": "mongodb",
+    "aliases": [
+      "mongodb"
+    ],
+    "categories": [
+      "database"
+    ],
+    "description": "Technology identity for mongodb. Use only when named in repository evidence.",
+    "path": "/architecture-assets/mongodb.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/mongodb",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:mongoose",
+    "name": "mongoose",
+    "aliases": [
+      "mongoose",
+      "mongoosejs"
+    ],
+    "categories": [
+      "data-model",
+      "nodejs"
+    ],
+    "description": "Technology identity for mongoose. Use only when named in repository evidence.",
+    "path": "/architecture-assets/mongoose.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/mongoose",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:mysql",
+    "name": "mysql",
+    "aliases": [
+      "mysql",
+      "mystructuredquerylanguage"
+    ],
+    "categories": [
+      "database",
+      "language"
+    ],
+    "description": "Technology identity for mysql. Use only when named in repository evidence.",
+    "path": "/architecture-assets/mysql.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/mysql",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:nats",
+    "name": "nats",
+    "aliases": [
+      "nats",
+      "nats-io",
+      "nats.io",
+      "NATS-io",
+      "NATS.io"
+    ],
+    "categories": [
+      "streaming",
+      "open-source",
+      "go"
+    ],
+    "description": "Technology identity for nats. Use only when named in repository evidence.",
+    "path": "/architecture-assets/nats.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/nats",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:neo4j",
+    "name": "neo4j",
+    "aliases": [
+      "neo4j"
+    ],
+    "categories": [
+      "database"
+    ],
+    "description": "Technology identity for neo4j. Use only when named in repository evidence.",
+    "path": "/architecture-assets/neo4j.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/neo4j",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:nestjs",
+    "name": "nestjs",
+    "aliases": [
+      "nestjs"
+    ],
+    "categories": [
+      "framework"
+    ],
+    "description": "Technology identity for nestjs. Use only when named in repository evidence.",
+    "path": "/architecture-assets/nestjs.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/nestjs",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:netlify",
+    "name": "netlify",
+    "aliases": [
+      "netlify"
+    ],
+    "categories": [
+      "cloud hosting",
+      "serverless",
+      "dynamic websites",
+      "web applications",
+      "open-source"
+    ],
+    "description": "Technology identity for netlify. Use only when named in repository evidence.",
+    "path": "/architecture-assets/netlify.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/netlify",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:networkx",
+    "name": "networkx",
+    "aliases": [
+      "networkx"
+    ],
+    "categories": [
+      "graph",
+      "library",
+      "python"
+    ],
+    "description": "Technology identity for networkx. Use only when named in repository evidence.",
+    "path": "/architecture-assets/networkx.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/networkx",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:newrelic",
+    "name": "newrelic",
+    "aliases": [
+      "newrelic"
+    ],
+    "categories": [
+      "monitoring",
+      "observability",
+      "analysis"
+    ],
+    "description": "Technology identity for newrelic. Use only when named in repository evidence.",
+    "path": "/architecture-assets/newrelic.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/newrelic",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:nextjs",
+    "name": "Next.js",
+    "aliases": [
+      "nextjs",
+      "next",
+      "next.js"
+    ],
+    "categories": [
+      "framework"
+    ],
+    "description": "Technology identity for Next.js. Use only when named in repository evidence.",
+    "path": "/architecture-assets/nextjs.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/nextjs",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:nginx",
+    "name": "nginx",
+    "aliases": [
+      "nginx"
+    ],
+    "categories": [
+      "server"
+    ],
+    "description": "Technology identity for nginx. Use only when named in repository evidence.",
+    "path": "/architecture-assets/nginx.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/nginx",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:nodejs",
+    "name": "Node.js",
+    "aliases": [
+      "nodejs",
+      "node",
+      "node.js"
+    ],
+    "categories": [
+      "javascript",
+      "language"
+    ],
+    "description": "Technology identity for Node.js. Use only when named in repository evidence.",
+    "path": "/architecture-assets/nodejs.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/nodejs",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:nomad",
+    "name": "nomad",
+    "aliases": [
+      "nomad",
+      "HashiCorp Nomad"
+    ],
+    "categories": [
+      "container",
+      "virtual machine",
+      "deployment"
+    ],
+    "description": "Technology identity for nomad. Use only when named in repository evidence.",
+    "path": "/architecture-assets/nomad.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/nomad",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:notion",
+    "name": "notion",
+    "aliases": [
+      "notion"
+    ],
+    "categories": [
+      "project-management"
+    ],
+    "description": "Technology identity for notion. Use only when named in repository evidence.",
+    "path": "/architecture-assets/notion.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/notion",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:npm",
+    "name": "npm",
+    "aliases": [
+      "npm",
+      "npmjs",
+      "nodepackagemanager"
+    ],
+    "categories": [
+      "package",
+      "manager"
+    ],
+    "description": "Technology identity for npm. Use only when named in repository evidence.",
+    "path": "/architecture-assets/npm.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/npm",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:nuget",
+    "name": "nuget",
+    "aliases": [
+      "nuget"
+    ],
+    "categories": [
+      "package",
+      "manager"
+    ],
+    "description": "Technology identity for nuget. Use only when named in repository evidence.",
+    "path": "/architecture-assets/nuget.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/nuget",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:numpy",
+    "name": "numpy",
+    "aliases": [
+      "numpy"
+    ],
+    "categories": [
+      "library",
+      "python"
+    ],
+    "description": "Technology identity for numpy. Use only when named in repository evidence.",
+    "path": "/architecture-assets/numpy.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/numpy",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:nuxtjs",
+    "name": "nuxtjs",
+    "aliases": [
+      "nuxtjs"
+    ],
+    "categories": [
+      "js",
+      "javascript",
+      "framework",
+      "frontend",
+      "vuejs"
+    ],
+    "description": "Technology identity for nuxtjs. Use only when named in repository evidence.",
+    "path": "/architecture-assets/nuxtjs.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/nuxtjs",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:oauth",
+    "name": "oauth",
+    "aliases": [
+      "oauth"
+    ],
+    "categories": [
+      "authentication",
+      "security"
+    ],
+    "description": "Technology identity for oauth. Use only when named in repository evidence.",
+    "path": "/architecture-assets/oauth.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/oauth",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:okta",
+    "name": "okta",
+    "aliases": [
+      "okta",
+      "okta developer"
+    ],
+    "categories": [
+      "auth",
+      "security"
+    ],
+    "description": "Technology identity for okta. Use only when named in repository evidence.",
+    "path": "/architecture-assets/okta.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/okta",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:openapi",
+    "name": "openapi",
+    "aliases": [
+      "openapi"
+    ],
+    "categories": [
+      "specification",
+      "api",
+      "open-source"
+    ],
+    "description": "Technology identity for openapi. Use only when named in repository evidence.",
+    "path": "/architecture-assets/openapi.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/openapi",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:opencv",
+    "name": "opencv",
+    "aliases": [
+      "opencv"
+    ],
+    "categories": [
+      "library",
+      "c/c++",
+      "computer-vision"
+    ],
+    "description": "Technology identity for opencv. Use only when named in repository evidence.",
+    "path": "/architecture-assets/opencv.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/opencv",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:openstack",
+    "name": "openstack",
+    "aliases": [
+      "openstack"
+    ],
+    "categories": [
+      "infrastructure-as-a-service",
+      "cloud-computing-platform"
+    ],
+    "description": "Technology identity for openstack. Use only when named in repository evidence.",
+    "path": "/architecture-assets/openstack.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/openstack",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:opentelemetry",
+    "name": "opentelemetry",
+    "aliases": [
+      "opentelemetry"
+    ],
+    "categories": [
+      "telemetry"
+    ],
+    "description": "Technology identity for opentelemetry. Use only when named in repository evidence.",
+    "path": "/architecture-assets/opentelemetry.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/opentelemetry",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:oracle",
+    "name": "oracle",
+    "aliases": [
+      "oracle",
+      "oracledatabase"
+    ],
+    "categories": [
+      "database"
+    ],
+    "description": "Technology identity for oracle. Use only when named in repository evidence.",
+    "path": "/architecture-assets/oracle.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/oracle",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:packer",
+    "name": "packer",
+    "aliases": [
+      "packer"
+    ],
+    "categories": [
+      "infrastructure",
+      "infrastructure-as-code",
+      "continuous-delivery"
+    ],
+    "description": "Technology identity for packer. Use only when named in repository evidence.",
+    "path": "/architecture-assets/packer.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/packer",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:pandas",
+    "name": "pandas",
+    "aliases": [
+      "pandas"
+    ],
+    "categories": [
+      "library",
+      "python"
+    ],
+    "description": "Technology identity for pandas. Use only when named in repository evidence.",
+    "path": "/architecture-assets/pandas.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/pandas",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:passport",
+    "name": "passport",
+    "aliases": [
+      "passport",
+      "passportjs"
+    ],
+    "categories": [
+      "authentication",
+      "security"
+    ],
+    "description": "Technology identity for passport. Use only when named in repository evidence.",
+    "path": "/architecture-assets/passport.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/passport",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:php",
+    "name": "php",
+    "aliases": [
+      "php",
+      "PHP Hypertext Preprocessor",
+      "Personal Home Page"
+    ],
+    "categories": [
+      "programming",
+      "language"
+    ],
+    "description": "Technology identity for php. Use only when named in repository evidence.",
+    "path": "/architecture-assets/php.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/php",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:playwright",
+    "name": "playwright",
+    "aliases": [
+      "playwright"
+    ],
+    "categories": [
+      "testing",
+      "framework"
+    ],
+    "description": "Technology identity for playwright. Use only when named in repository evidence.",
+    "path": "/architecture-assets/playwright.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/playwright",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:plotly",
+    "name": "plotly",
+    "aliases": [
+      "plotly"
+    ],
+    "categories": [
+      "frontend",
+      "machine-learning",
+      "dashboard"
+    ],
+    "description": "Technology identity for plotly. Use only when named in repository evidence.",
+    "path": "/architecture-assets/plotly.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/plotly",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:pnpm",
+    "name": "pnpm",
+    "aliases": [
+      "pnpm",
+      "performant npm"
+    ],
+    "categories": [
+      "package",
+      "manager"
+    ],
+    "description": "Technology identity for pnpm. Use only when named in repository evidence.",
+    "path": "/architecture-assets/pnpm.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/pnpm",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:podman",
+    "name": "podman",
+    "aliases": [
+      "podman"
+    ],
+    "categories": [
+      "container",
+      "pods",
+      "docker"
+    ],
+    "description": "Technology identity for podman. Use only when named in repository evidence.",
+    "path": "/architecture-assets/podman.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/podman",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:poetry",
+    "name": "poetry",
+    "aliases": [
+      "poetry",
+      "python-poetry"
+    ],
+    "categories": [
+      "package-manager",
+      "python"
+    ],
+    "description": "Technology identity for poetry. Use only when named in repository evidence.",
+    "path": "/architecture-assets/poetry.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/poetry",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:portainer",
+    "name": "portainer",
+    "aliases": [
+      "portainer"
+    ],
+    "categories": [
+      "docker",
+      "kubernetes",
+      "orchestrator"
+    ],
+    "description": "Technology identity for portainer. Use only when named in repository evidence.",
+    "path": "/architecture-assets/portainer.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/portainer",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:postgresql",
+    "name": "PostgreSQL",
+    "aliases": [
+      "postgresql",
+      "postgres"
+    ],
+    "categories": [
+      "database"
+    ],
+    "description": "Technology identity for PostgreSQL. Use only when named in repository evidence.",
+    "path": "/architecture-assets/postgresql.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/postgresql",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:postman",
+    "name": "postman",
+    "aliases": [
+      "postman"
+    ],
+    "categories": [
+      "tool",
+      "testing"
+    ],
+    "description": "Technology identity for postman. Use only when named in repository evidence.",
+    "path": "/architecture-assets/postman.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/postman",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:powershell",
+    "name": "powershell",
+    "aliases": [
+      "powershell",
+      "ps"
+    ],
+    "categories": [
+      "command-line",
+      "shell",
+      "terminal",
+      "cli",
+      "windows",
+      "cmdlets"
+    ],
+    "description": "Technology identity for powershell. Use only when named in repository evidence.",
+    "path": "/architecture-assets/powershell.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/powershell",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:prisma",
+    "name": "prisma",
+    "aliases": [
+      "prisma"
+    ],
+    "categories": [
+      "orm",
+      "nodejs",
+      "typescript"
+    ],
+    "description": "Technology identity for prisma. Use only when named in repository evidence.",
+    "path": "/architecture-assets/prisma.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/prisma",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:prometheus",
+    "name": "prometheus",
+    "aliases": [
+      "prometheus"
+    ],
+    "categories": [
+      "monitoring",
+      "observability",
+      "analysis"
+    ],
+    "description": "Technology identity for prometheus. Use only when named in repository evidence.",
+    "path": "/architecture-assets/prometheus.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/prometheus",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:proxmox",
+    "name": "proxmox",
+    "aliases": [
+      "proxmox"
+    ],
+    "categories": [
+      "container",
+      "lxc",
+      "virtual machine"
+    ],
+    "description": "Technology identity for proxmox. Use only when named in repository evidence.",
+    "path": "/architecture-assets/proxmox.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/proxmox",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:pulsar",
+    "name": "pulsar",
+    "aliases": [
+      "pulsar",
+      "Pulsar Edit"
+    ],
+    "categories": [
+      "open-source",
+      "cross-platform",
+      "editor"
+    ],
+    "description": "Technology identity for pulsar. Use only when named in repository evidence.",
+    "path": "/architecture-assets/pulsar.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/pulsar",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:pulumi",
+    "name": "pulumi",
+    "aliases": [
+      "pulumi"
+    ],
+    "categories": [
+      "infrastructure-as-code",
+      "cloud"
+    ],
+    "description": "Technology identity for pulumi. Use only when named in repository evidence.",
+    "path": "/architecture-assets/pulumi.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/pulumi",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:pycharm",
+    "name": "pycharm",
+    "aliases": [
+      "pycharm"
+    ],
+    "categories": [
+      "jetbrains",
+      "editor"
+    ],
+    "description": "Technology identity for pycharm. Use only when named in repository evidence.",
+    "path": "/architecture-assets/pycharm.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/pycharm",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:pypi",
+    "name": "pypi",
+    "aliases": [
+      "pypi",
+      "Python Package Index"
+    ],
+    "categories": [
+      "python",
+      "package",
+      "programming"
+    ],
+    "description": "Technology identity for pypi. Use only when named in repository evidence.",
+    "path": "/architecture-assets/pypi.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/pypi",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:pytest",
+    "name": "pytest",
+    "aliases": [
+      "pytest"
+    ],
+    "categories": [
+      "python",
+      "framework",
+      "testing"
+    ],
+    "description": "Technology identity for pytest. Use only when named in repository evidence.",
+    "path": "/architecture-assets/pytest.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/pytest",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:python",
+    "name": "python",
+    "aliases": [
+      "python"
+    ],
+    "categories": [
+      "programming",
+      "language"
+    ],
+    "description": "Technology identity for python. Use only when named in repository evidence.",
+    "path": "/architecture-assets/python.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/python",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:pytorch",
+    "name": "pytorch",
+    "aliases": [
+      "pytorch",
+      "torch"
+    ],
+    "categories": [
+      "programming",
+      "framework",
+      "machine-learning",
+      "python"
+    ],
+    "description": "Technology identity for pytorch. Use only when named in repository evidence.",
+    "path": "/architecture-assets/pytorch.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/pytorch",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:quarkus",
+    "name": "quarkus",
+    "aliases": [
+      "quarkus"
+    ],
+    "categories": [
+      "java",
+      "framework"
+    ],
+    "description": "Technology identity for quarkus. Use only when named in repository evidence.",
+    "path": "/architecture-assets/quarkus.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/quarkus",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:qwik",
+    "name": "qwik",
+    "aliases": [
+      "qwik"
+    ],
+    "categories": [
+      "framework",
+      "open-source"
+    ],
+    "description": "Technology identity for qwik. Use only when named in repository evidence.",
+    "path": "/architecture-assets/qwik.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/qwik",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:r",
+    "name": "r",
+    "aliases": [
+      "r",
+      "rlang"
+    ],
+    "categories": [
+      "programming",
+      "language"
+    ],
+    "description": "Technology identity for r. Use only when named in repository evidence.",
+    "path": "/architecture-assets/r.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/r",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:rabbitmq",
+    "name": "rabbitmq",
+    "aliases": [
+      "rabbitmq"
+    ],
+    "categories": [
+      "message-broker",
+      "open-source"
+    ],
+    "description": "Technology identity for rabbitmq. Use only when named in repository evidence.",
+    "path": "/architecture-assets/rabbitmq.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/rabbitmq",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:rails",
+    "name": "rails",
+    "aliases": [
+      "rails",
+      "rubyonrails"
+    ],
+    "categories": [
+      "framework"
+    ],
+    "description": "Technology identity for rails. Use only when named in repository evidence.",
+    "path": "/architecture-assets/rails.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/rails",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:rancher",
+    "name": "rancher",
+    "aliases": [
+      "rancher"
+    ],
+    "categories": [
+      "kubernetes",
+      "orchestrator"
+    ],
+    "description": "Technology identity for rancher. Use only when named in repository evidence.",
+    "path": "/architecture-assets/rancher.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/rancher",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:react",
+    "name": "react",
+    "aliases": [
+      "react",
+      "react-dom",
+      "reactjs"
+    ],
+    "categories": [
+      "framework"
+    ],
+    "description": "Technology identity for react. Use only when named in repository evidence.",
+    "path": "/architecture-assets/react.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/react",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:reactnative",
+    "name": "reactnative",
+    "aliases": [
+      "reactnative",
+      "react-native"
+    ],
+    "categories": [
+      "framework"
+    ],
+    "description": "Technology identity for reactnative. Use only when named in repository evidence.",
+    "path": "/architecture-assets/reactnative.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/reactnative",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:redhat",
+    "name": "redhat",
+    "aliases": [
+      "redhat"
+    ],
+    "categories": [
+      "server",
+      "linux"
+    ],
+    "description": "Technology identity for redhat. Use only when named in repository evidence.",
+    "path": "/architecture-assets/redhat.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/redhat",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:redis",
+    "name": "redis",
+    "aliases": [
+      "redis",
+      "remotedictionaryserver"
+    ],
+    "categories": [
+      "server"
+    ],
+    "description": "Technology identity for redis. Use only when named in repository evidence.",
+    "path": "/architecture-assets/redis.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/redis",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:remix",
+    "name": "remix",
+    "aliases": [
+      "remix",
+      "remix.run"
+    ],
+    "categories": [
+      "framework",
+      "fullstack",
+      "web"
+    ],
+    "description": "Technology identity for remix. Use only when named in repository evidence.",
+    "path": "/architecture-assets/remix.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/remix",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:ruby",
+    "name": "ruby",
+    "aliases": [
+      "ruby",
+      "rubylang"
+    ],
+    "categories": [
+      "programming",
+      "language"
+    ],
+    "description": "Technology identity for ruby. Use only when named in repository evidence.",
+    "path": "/architecture-assets/ruby.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/ruby",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:rust",
+    "name": "rust",
+    "aliases": [
+      "rust",
+      "rustlang"
+    ],
+    "categories": [
+      "programming",
+      "language"
+    ],
+    "description": "Technology identity for rust. Use only when named in repository evidence.",
+    "path": "/architecture-assets/rust.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/rust",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:sass",
+    "name": "sass",
+    "aliases": [
+      "sass",
+      "scss"
+    ],
+    "categories": [
+      "pre-processor",
+      "css"
+    ],
+    "description": "Technology identity for sass. Use only when named in repository evidence.",
+    "path": "/architecture-assets/sass.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/sass",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:scala",
+    "name": "scala",
+    "aliases": [
+      "scala",
+      "scalalang"
+    ],
+    "categories": [
+      "programming",
+      "language",
+      "jvm"
+    ],
+    "description": "Technology identity for scala. Use only when named in repository evidence.",
+    "path": "/architecture-assets/scala.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/scala",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:scikitlearn",
+    "name": "scikit-learn",
+    "aliases": [
+      "scikitlearn",
+      "sklearn",
+      "scikit-learn",
+      "scikit"
+    ],
+    "categories": [
+      "machine-learning",
+      "python",
+      "tool",
+      "library"
+    ],
+    "description": "Technology identity for scikit-learn. Use only when named in repository evidence.",
+    "path": "/architecture-assets/scikitlearn.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/scikitlearn",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:selenium",
+    "name": "selenium",
+    "aliases": [
+      "selenium"
+    ],
+    "categories": [
+      "webdrive",
+      "automation"
+    ],
+    "description": "Technology identity for selenium. Use only when named in repository evidence.",
+    "path": "/architecture-assets/selenium.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/selenium",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:sentry",
+    "name": "sentry",
+    "aliases": [
+      "sentry"
+    ],
+    "categories": [
+      "monitoring",
+      "analytics",
+      "metrics"
+    ],
+    "description": "Technology identity for sentry. Use only when named in repository evidence.",
+    "path": "/architecture-assets/sentry.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/sentry",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:sequelize",
+    "name": "sequelize",
+    "aliases": [
+      "sequelize",
+      "sequelizejs"
+    ],
+    "categories": [
+      "database",
+      "language"
+    ],
+    "description": "Technology identity for sequelize. Use only when named in repository evidence.",
+    "path": "/architecture-assets/sequelize.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/sequelize",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:solidjs",
+    "name": "solidjs",
+    "aliases": [
+      "solidjs"
+    ],
+    "categories": [
+      "javascript",
+      "framework",
+      "frontend"
+    ],
+    "description": "Technology identity for solidjs. Use only when named in repository evidence.",
+    "path": "/architecture-assets/solidjs.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/solidjs",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:sonarqube",
+    "name": "sonarqube",
+    "aliases": [
+      "sonarqube",
+      "sonar"
+    ],
+    "categories": [
+      "tool",
+      "security"
+    ],
+    "description": "Technology identity for sonarqube. Use only when named in repository evidence.",
+    "path": "/architecture-assets/sonarqube.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/sonarqube",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:spring",
+    "name": "spring",
+    "aliases": [
+      "spring",
+      "springframework"
+    ],
+    "categories": [
+      "framework"
+    ],
+    "description": "Technology identity for spring. Use only when named in repository evidence.",
+    "path": "/architecture-assets/spring.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/spring",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:sqlalchemy",
+    "name": "sqlalchemy",
+    "aliases": [
+      "sqlalchemy"
+    ],
+    "categories": [
+      "python",
+      "orm"
+    ],
+    "description": "Technology identity for sqlalchemy. Use only when named in repository evidence.",
+    "path": "/architecture-assets/sqlalchemy.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/sqlalchemy",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:sqlite",
+    "name": "sqlite",
+    "aliases": [
+      "sqlite"
+    ],
+    "categories": [
+      "sql",
+      "database",
+      "db"
+    ],
+    "description": "Technology identity for sqlite. Use only when named in repository evidence.",
+    "path": "/architecture-assets/sqlite.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/sqlite",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:storybook",
+    "name": "storybook",
+    "aliases": [
+      "storybook",
+      "storybookjs"
+    ],
+    "categories": [
+      "framework",
+      "documentation",
+      "ui"
+    ],
+    "description": "Technology identity for storybook. Use only when named in repository evidence.",
+    "path": "/architecture-assets/storybook.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/storybook",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:streamlit",
+    "name": "streamlit",
+    "aliases": [
+      "streamlit"
+    ],
+    "categories": [
+      "python",
+      "machine-learning",
+      "data-science"
+    ],
+    "description": "Technology identity for streamlit. Use only when named in repository evidence.",
+    "path": "/architecture-assets/streamlit.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/streamlit",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:supabase",
+    "name": "supabase",
+    "aliases": [
+      "supabase"
+    ],
+    "categories": [
+      "authentication",
+      "cloud-computing-platform",
+      "database",
+      "storage"
+    ],
+    "description": "Technology identity for supabase. Use only when named in repository evidence.",
+    "path": "/architecture-assets/supabase.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/supabase",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:svelte",
+    "name": "svelte",
+    "aliases": [
+      "svelte",
+      "sveltejs"
+    ],
+    "categories": [
+      "javascript",
+      "framework",
+      "compiler"
+    ],
+    "description": "Technology identity for svelte. Use only when named in repository evidence.",
+    "path": "/architecture-assets/svelte.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/svelte",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:swift",
+    "name": "swift",
+    "aliases": [
+      "swift"
+    ],
+    "categories": [
+      "language"
+    ],
+    "description": "Technology identity for swift. Use only when named in repository evidence.",
+    "path": "/architecture-assets/swift.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/swift",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:symfony",
+    "name": "symfony",
+    "aliases": [
+      "symfony"
+    ],
+    "categories": [
+      "framework",
+      "php"
+    ],
+    "description": "Technology identity for symfony. Use only when named in repository evidence.",
+    "path": "/architecture-assets/symfony.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/symfony",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:tailwindcss",
+    "name": "tailwindcss",
+    "aliases": [
+      "tailwindcss"
+    ],
+    "categories": [
+      "css",
+      "framework"
+    ],
+    "description": "Technology identity for tailwindcss. Use only when named in repository evidence.",
+    "path": "/architecture-assets/tailwindcss.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/tailwindcss",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:tauri",
+    "name": "tauri",
+    "aliases": [
+      "tauri"
+    ],
+    "categories": [
+      "nodejs",
+      "rust",
+      "desktop",
+      "framework",
+      "programming"
+    ],
+    "description": "Technology identity for tauri. Use only when named in repository evidence.",
+    "path": "/architecture-assets/tauri.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/tauri",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:tensorflow",
+    "name": "tensorflow",
+    "aliases": [
+      "tensorflow"
+    ],
+    "categories": [
+      "library",
+      "machine-learning",
+      "deep-learning"
+    ],
+    "description": "Technology identity for tensorflow. Use only when named in repository evidence.",
+    "path": "/architecture-assets/tensorflow.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/tensorflow",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:terraform",
+    "name": "terraform",
+    "aliases": [
+      "terraform"
+    ],
+    "categories": [
+      "deployment",
+      "architecture",
+      "automation"
+    ],
+    "description": "Technology identity for terraform. Use only when named in repository evidence.",
+    "path": "/architecture-assets/terraform.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/terraform",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:travis",
+    "name": "travis",
+    "aliases": [
+      "travis",
+      "travisci"
+    ],
+    "categories": [
+      "platform",
+      "integration"
+    ],
+    "description": "Technology identity for travis. Use only when named in repository evidence.",
+    "path": "/architecture-assets/travis.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/travis",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:typescript",
+    "name": "typescript",
+    "aliases": [
+      "typescript",
+      "ts"
+    ],
+    "categories": [
+      "programming",
+      "transpiler",
+      "javascript",
+      "language"
+    ],
+    "description": "Technology identity for typescript. Use only when named in repository evidence.",
+    "path": "/architecture-assets/typescript.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/typescript",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:ubuntu",
+    "name": "ubuntu",
+    "aliases": [
+      "ubuntu"
+    ],
+    "categories": [
+      "os",
+      "open-source",
+      "linux"
+    ],
+    "description": "Technology identity for ubuntu. Use only when named in repository evidence.",
+    "path": "/architecture-assets/ubuntu.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/ubuntu",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:vagrant",
+    "name": "vagrant",
+    "aliases": [
+      "vagrant"
+    ],
+    "categories": [
+      "platform"
+    ],
+    "description": "Technology identity for vagrant. Use only when named in repository evidence.",
+    "path": "/architecture-assets/vagrant.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/vagrant",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:vault",
+    "name": "vault",
+    "aliases": [
+      "vault",
+      "HashiCorp Vault"
+    ],
+    "categories": [
+      "tool",
+      "security",
+      "infrastructure"
+    ],
+    "description": "Technology identity for vault. Use only when named in repository evidence.",
+    "path": "/architecture-assets/vault.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/vault",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:vercel",
+    "name": "vercel",
+    "aliases": [
+      "vercel"
+    ],
+    "categories": [
+      "hosting",
+      "platform",
+      "deployment",
+      "git"
+    ],
+    "description": "Technology identity for vercel. Use only when named in repository evidence.",
+    "path": "/architecture-assets/vercel.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/vercel",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:vite",
+    "name": "vite",
+    "aliases": [
+      "vite"
+    ],
+    "categories": [
+      "web3",
+      "blockchain",
+      "DAG"
+    ],
+    "description": "Technology identity for vite. Use only when named in repository evidence.",
+    "path": "/architecture-assets/vite.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/vite",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:vitest",
+    "name": "vitest",
+    "aliases": [
+      "vitest"
+    ],
+    "categories": [
+      "framework",
+      "open-source",
+      "testing",
+      "vite"
+    ],
+    "description": "Technology identity for vitest. Use only when named in repository evidence.",
+    "path": "/architecture-assets/vitest.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/vitest",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:vscode",
+    "name": "vscode",
+    "aliases": [
+      "vscode",
+      "visualstudiocode"
+    ],
+    "categories": [
+      "editor",
+      "ide"
+    ],
+    "description": "Technology identity for vscode. Use only when named in repository evidence.",
+    "path": "/architecture-assets/vscode.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/vscode",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:vuejs",
+    "name": "vuejs",
+    "aliases": [
+      "vuejs"
+    ],
+    "categories": [
+      "framework"
+    ],
+    "description": "Technology identity for vuejs. Use only when named in repository evidence.",
+    "path": "/architecture-assets/vuejs.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/vuejs",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:webpack",
+    "name": "webpack",
+    "aliases": [
+      "webpack",
+      "webpackjs"
+    ],
+    "categories": [
+      "package",
+      "manager"
+    ],
+    "description": "Technology identity for webpack. Use only when named in repository evidence.",
+    "path": "/architecture-assets/webpack.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/webpack",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:webstorm",
+    "name": "webstorm",
+    "aliases": [
+      "webstorm"
+    ],
+    "categories": [
+      "jetbrains",
+      "editor"
+    ],
+    "description": "Technology identity for webstorm. Use only when named in repository evidence.",
+    "path": "/architecture-assets/webstorm.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/webstorm",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:yaml",
+    "name": "yaml",
+    "aliases": [
+      "yaml",
+      "YAML Ain't Markup Language"
+    ],
+    "categories": [
+      "data",
+      "language"
+    ],
+    "description": "Technology identity for yaml. Use only when named in repository evidence.",
+    "path": "/architecture-assets/yaml.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/yaml",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  },
+  {
+    "id": "tech:yarn",
+    "name": "yarn",
+    "aliases": [
+      "yarn"
+    ],
+    "categories": [
+      "package",
+      "manager",
+      "javascript",
+      "js"
+    ],
+    "description": "Technology identity for yarn. Use only when named in repository evidence.",
+    "path": "/architecture-assets/yarn.svg",
+    "source": "https://github.com/devicons/devicon/tree/v2.17.0/icons/yarn",
+    "license": "MIT; brand marks belong to their owners; follow the brand policy.",
+    "version": "2.17.0"
+  }
+]

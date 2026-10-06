@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: chalkie-2-0
+    runtime: node
+    repo: https://github.com/kushagarwal2910-lang/chalkie-2.0
+    branch: main
+    plan: free
+    region: oregon
+    buildCommand: npm install -g pnpm@11.0.0 && pnpm install --frozen-lockfile --prod=false && pnpm run build
+    startCommand: node server.mjs
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.13.0
+      - key: NODE_ENV
+        value: production
+      - key: HOSTNAME
+        value: 0.0.0.0
+      - key: BYOK_ENCRYPTION_SECRET
+        generateValue: true
+      # Free-tier storage is temporary. For durable indexes, attach a disk on
+      # a paid instance and change this path to its mount point (see README).
+      - key: CHALKIE_DATA_DIR
+        value: /opt/render/project/src/.chalkie-data

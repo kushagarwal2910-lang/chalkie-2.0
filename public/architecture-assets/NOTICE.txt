@@ -1,0 +1,2 @@
+Curated from Devicon 2.17.0. Product names, logos and brands belong to their respective owners and identify technologies, without implying endorsement. Follow each brand's usage policy. Source/version: lib/architecture/asset-catalog.json.
+Generic concept illustrations: Lucide, ISC, https://lucide.dev/license

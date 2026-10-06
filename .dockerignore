@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.pnpm-store
+scratch
+*.mp4
+*.webm
+.env*
+!.env.example
+.chalkie-dev-secret
+.chalkie-data
+work
+outputs
