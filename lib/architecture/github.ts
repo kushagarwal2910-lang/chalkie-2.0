@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { classifyBlueprint, parseBlueprint } from "./blueprints.ts";
 import { RepositoryError, type RepositoryIndex } from "./types.ts";
+import { githubFailure } from "./github-errors";
 
 export function parseRepositoryUrl(input: string) {
   let url: URL;
@@ -15,7 +16,7 @@ export function parseRepositoryUrl(input: string) {
 
 type TreeEntry = { path: string; sha: string; type: string; mode: string; size?: number };
 type Tree = { tree: TreeEntry[]; truncated: boolean };
-type Options = { token?: string; signal?: AbortSignal; ownerKey: string; onStatus?: (message: string) => void; fetcher?: typeof fetch };
+type Options = { token?: string; signal?: AbortSignal; ownerKey: string; allowEmptyEvidence?: boolean; onStatus?: (message: string) => void; fetcher?: typeof fetch };
 
 export async function ingestRepository(input: string, options: Options): Promise<RepositoryIndex> {
   const repo = parseRepositoryUrl(input);
@@ -29,12 +30,7 @@ export async function ingestRepository(input: string, options: Options): Promise
       signal: options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(25000)]) : AbortSignal.timeout(25000),
       redirect: "error", cache: "no-store",
     });
-    if (!response.ok) {
-      if (response.status === 404) throw new RepositoryError("Repository or branch not found. For a private repository, connect a GitHub token with read access in Repository access.", "REPOSITORY_NOT_FOUND");
-      if (response.status === 401) throw new RepositoryError("GitHub rejected your token. Update it in Repository access.", "GITHUB_AUTH");
-      if (response.status === 403 || response.status === 429) throw new RepositoryError("GitHub denied this request or its rate limit was reached. Check repository access, connect a token, or retry after the limit resets.", "GITHUB_LIMIT", true);
-      throw new RepositoryError("GitHub could not complete the scan. Please retry.", "GITHUB_UNAVAILABLE", true);
-    }
+    if (!response.ok) throw await githubFailure(response, Boolean(options.token));
     const reader = response.body?.getReader();
     if (!reader) throw new RepositoryError("GitHub returned an empty response.");
     const buffers: Uint8Array[] = []; let bytes = 0;
@@ -89,7 +85,10 @@ export async function ingestRepository(input: string, options: Options): Promise
     for (const item of parsed.evidence) index.evidence.push({ ...item, id: "e" + (index.evidence.length + 1) });
   }
   index.warnings = index.warnings.slice(0, 100);
-  if (!index.evidence.length) throw new RepositoryError("No readable architecture blueprints were found. Chalkie looks for container files, infrastructure declarations, dependency manifests, and architecture documentation; application source code is excluded.", "NO_BLUEPRINTS");
+  if (!index.evidence.length) {
+    if (!options.allowEmptyEvidence) throw new RepositoryError("No readable architecture blueprints were found. Add supporting documentation, or use a repository with container files, infrastructure declarations, dependency manifests, or architecture docs. Application source code is excluded.", "NO_BLUEPRINTS");
+    index.warnings.push("No readable repository blueprints were found. This explanation relies on your supporting documentation; repository architecture is unverified.");
+  }
   return index;
 }
 
@@ -103,9 +102,14 @@ export function retrieveEvidence(index: RepositoryIndex, question: string, limit
   // Include structural evidence from each file class even when an overview has no keywords.
   const selected = new Map<string, RepositoryIndex["evidence"][number]>();
   for (const kind of ["documentation", "compose", "terraform", "kubernetes", "cloudformation", "dependencies", "docker"]) {
-    const match = scored.find(row => row.item.kind === kind); if (match) selected.set(match.item.id, match.item);
+    const match = scored.find(row => row.item.kind === kind && row.item.origin !== "attachment"); if (match) selected.set(match.item.id, match.item);
+  }
+  // Give supplementary documents representation without flooding the overview.
+  const attachments = new Set<string>();
+  for (const { item } of scored) if (item.origin === "attachment" && !attachments.has(item.path) && selected.size < limit) {
+    selected.set(item.id, item); attachments.add(item.path);
   }
   for (const { item } of scored) { if (selected.size >= limit) break; selected.set(item.id, item); }
   let budget = 0;
-  return [...selected.values()].filter(item => { budget += item.text.length; return budget <= 38000; });
+  return [...selected.values()].filter(item => { if (budget + item.text.length > 38000) return false; budget += item.text.length; return true; });
 }

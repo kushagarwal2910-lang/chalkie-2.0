@@ -14,6 +14,10 @@ import os from "node:os";
 import { mergeFollowUpLesson } from "../follow-up.ts";
 import type { LessonPlan, FollowUpPlan } from "../lesson-schema.ts";
 import type { Evidence, RepositoryIndex } from "./types.ts";
+import { withSupportingContext } from "./supporting-context.ts";
+import { repositoryInputSchema } from "../repository-input.ts";
+import { githubFailure } from "./github-errors.ts";
+import { providerFailure } from "../provider-response.ts";
 
 test("blueprint allowlist excludes application source, secrets, state, symlinks and vendored content", () => {
   for (const path of ["app.ts", "auth.py", "lib/utils.js", "src/page.tsx", ".env", ".env.production", "terraform.tfstate", "terraform.tfstate.backup", "secrets.yaml", "node_modules/a/package.json", ".terraform/mod/main.tf", "pnpm-lock.yaml"]) {
@@ -200,4 +204,98 @@ test("private repository indexes persist, isolate browser owners, expire, and su
   await assert.rejects(loadRepositoryIndex(index.id, "owner-a"), /expired/);
   await clearRepositoryIndexes("owner-a");
   await assert.rejects(loadRepositoryIndex(index.id, "owner-a"), /unavailable/);
+});
+
+test("supporting documents are bounded, redacted and stored separately from task instructions", () => {
+  assert.equal(repositoryInputSchema.safeParse({ documents: Array.from({ length: 6 }, () => ({ name: "a.txt", text: "hi" })) }).success, false);
+  assert.equal(repositoryInputSchema.safeParse({ documents: [{ name: "../bad.txt", text: "hi" }] }).success, false);
+  assert.equal(repositoryInputSchema.safeParse({ notes: "x".repeat(20001) }).success, false);
+  assert.equal(repositoryInputSchema.safeParse({ documents: Array.from({ length: 5 }, () => ({ name: "a.txt", text: "x".repeat(20000) })) }).success, false);
+  const input = repositoryInputSchema.parse({ instructions: "Focus on onboarding", notes: "Onboarding uses a buddy.\nAPI_KEY=private-value", documents: [{ name: "teams.md", text: "a".repeat(19000) }] });
+  const index = withSupportingContext(fixtureIndex(), input);
+  assert.equal(index.instructions, "Focus on onboarding");
+  assert.doesNotMatch(JSON.stringify(index), /private-value/);
+  const docs = index.evidence.filter(e => e.origin === "attachment");
+  assert.ok(docs.every(e => e.text.length <= 2200));
+  assert.equal(docs.filter(e => e.path === "teams.md").map(e => e.text).join("").length, 19000);
+  assert.ok(!docs.some(e => e.text.includes("Focus on onboarding")));
+  assert.equal(new Set(index.evidence.map(e => e.id)).size, index.evidence.length);
+  assert.ok(retrieveEvidence(index, "onboarding").some(e => e.origin === "attachment"));
+  const refreshed = withSupportingContext({ ...fixtureIndex(), id: "new-index" }, repositoryInputSchema.parse({}), index);
+  assert.equal(refreshed.instructions, index.instructions);
+  assert.deepEqual(refreshed.evidence.filter(e => e.origin === "attachment"), docs);
+  assert.throws(() => withSupportingContext({ ...fixtureIndex(), ownerKey: "another-owner" }, repositoryInputSchema.parse({}), index), /another repository or owner/);
+});
+
+test("a repository without blueprints can use explicit supporting documentation but never scans source code", async () => {
+  const fetcher = (async (url: string | URL | Request) => {
+    const path = String(url);
+    return Response.json(path.endsWith("/repos/a/b") ? { default_branch: "main" } : path.includes("/commits/") ? { sha: "a".repeat(40), commit: { tree: { sha: "root" } } } : { tree: [{ path: "app.ts", type: "blob", mode: "100644", sha: "source", size: 100 }] });
+  }) as typeof fetch;
+  await assert.rejects(ingestRepository("https://github.com/a/b", { ownerKey: "a", fetcher }), /Add supporting documentation/);
+  const index = await ingestRepository("https://github.com/a/b", { ownerKey: "a", fetcher, allowEmptyEvidence: true });
+  assert.equal(index.evidence.length, 0); assert.match(index.warnings[0], /supporting documentation/);
+});
+
+test("prompt and documents reach the overview and follow-up with honest attachment citations", async () => {
+  const index = withSupportingContext(fixtureIndex(), repositoryInputSchema.parse({ instructions: "Explain team ownership for a new frontend engineer", documents: [{ name: "ownership.md", text: "The platform team owns the API gateway." }] }));
+  const attachment = index.evidence.find(e => e.origin === "attachment")!;
+  const output = plan(); output.nodes[0].evidenceIds = [attachment.id]; output.nodes[0].certainty = "documented";
+  const complete = async (_path: string, init: RequestInit) => {
+    const request = JSON.parse(String(init.body));
+    const context = JSON.parse(request.messages[1].content);
+    assert.equal(context.explanationFocus, index.instructions);
+    assert.ok(context.evidence.some((e: Evidence) => e.id === attachment.id && e.origin === "attachment"));
+    assert.match(request.messages[0].content, /not factual evidence/);
+    return Response.json({ choices: [{ message: { content: JSON.stringify(output) } }] });
+  };
+  const lesson = await createRepositoryLesson(index, "developer", {}, complete);
+  const source = lesson.sources.find(s => s.id === attachment.id)!;
+  assert.equal(source.origin, "attachment"); assert.equal(source.url, ""); assert.match(source.publisher, /Supporting document/);
+  assert.equal(importArchitectureDocument(JSON.stringify(lesson)).sources.find(s => s.id === source.id)?.origin, "attachment");
+  const followup = { ...output, coverage: "existing", nodes: [], edges: [], steps: [{ ...output.steps[0], id: "followup-step", targetIds: [output.nodes[0].id] }] };
+  const reply = await createRepositoryFollowUp(index, "Who owns this service?", lesson, "developer", {}, async (_path, init) => {
+    const context = JSON.parse(JSON.parse(String(init.body)).messages[1].content);
+    assert.equal(context.explanationFocus, index.instructions);
+    assert.ok(context.evidence.some((e: Evidence) => e.id === attachment.id));
+    return Response.json({ choices: [{ message: { content: JSON.stringify(followup) } }] });
+  });
+  assert.ok(reply.sources?.some(s => s.id === attachment.id));
+  const unsafe = structuredClone(lesson); unsafe.sources.find(s => s.id === source.id)!.url = "javascript:alert(1)";
+  assert.throws(() => importArchitectureDocument(JSON.stringify(unsafe)), /HTTP/);
+});
+
+test("large documents and diagram history cannot grow the full Groq request past its budget", async () => {
+  const index = withSupportingContext(fixtureIndex(), repositoryInputSchema.parse({ instructions: "Explain the architecture ".repeat(50), documents: Array.from({ length: 4 }, (_, i) => ({ name: `notes-${i}.md`, text: "Architecture owns the database. ".repeat(600) })) }));
+  index.evidence.push(...Array.from({ length: 100 }, (_, i) => ({ ...evidence[0], id: "large" + i, text: "Repository architecture documentation. ".repeat(90) })));
+  const current = fixtureLesson();
+  current.objects = Array.from({ length: 160 }, (_, i) => ({ ...current.objects[0], id: "node" + i, label: "A long architecture component label ".repeat(2) }));
+  current.connections = []; current.conversation = Array.from({ length: 30 }, () => ({ question: "question ".repeat(100), answer: "answer ".repeat(300) }));
+  const output = { ...plan(), coverage: "existing", nodes: [], edges: [], targetIds: ["node0"], steps: [{ ...plan().steps[0], id: "followup", targetIds: ["node0"] }] };
+  let calls = 0;
+  await createRepositoryFollowUp(index, "Explain architecture", current, "developer", {}, async (_path, init) => {
+    calls++;
+    const body = String(init.body), request = JSON.parse(body), context = JSON.parse(request.messages[1].content);
+    assert.ok(Buffer.byteLength(body) <= 14000);
+    assert.equal(request.max_completion_tokens, 3000);
+    assert.ok(context.evidence.some((e: Evidence) => e.origin === "attachment"));
+    return Response.json({ choices: [{ message: { content: calls === 1 ? "{}" : JSON.stringify(output) } }] });
+  });
+  assert.equal(calls, 2);
+  assert.ok(index.evidence.some(e => e.text.length > 1400), "retrieval must not mutate stored evidence");
+});
+
+test("GitHub rate limits, access denial and credentials remain distinct and preserve reset times", async () => {
+  const now = 1800000000000;
+  const limited = await githubFailure(Response.json({ message: "API rate limit exceeded" }, { status: 403, headers: { "x-ratelimit-remaining": "0", "x-ratelimit-reset": String((now + 90000) / 1000) } }), false, now);
+  assert.equal(limited.code, "GITHUB_RATE_LIMIT"); assert.equal(limited.nextRetryAt, now + 91000);
+  assert.match(limited.message, /Connect a GitHub token/);
+  const publicFailure = providerFailure(limited, { source: "byok", allUnavailable: false, keys: [] });
+  assert.equal(publicFailure.status, 429); assert.equal(publicFailure.failure.nextRetryAt, now + 91000); assert.equal(publicFailure.failure.quota, undefined);
+  const denied = await githubFailure(Response.json({ message: "Resource not accessible by personal access token: PRIVATE" }, { status: 403, headers: { "x-ratelimit-remaining": "4000" } }), true, now);
+  assert.equal(denied.code, "GITHUB_ACCESS_DENIED"); assert.equal(denied.nextRetryAt, undefined); assert.doesNotMatch(denied.message, /PRIVATE/);
+  const secondary = await githubFailure(Response.json({ message: "secondary rate limit" }, { status: 403, headers: { "retry-after": "120" } }), true, now);
+  assert.equal(secondary.nextRetryAt, now + 121000);
+  const unauthenticated = await githubFailure(new Response(null, { status: 401 }), true, now);
+  assert.equal(unauthenticated.code, "GITHUB_AUTH");
 });

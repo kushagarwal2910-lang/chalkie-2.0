@@ -17,6 +17,7 @@ export function RepositoryAccess() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Could not update GitHub access.");
       setConnected(data.connected); setToken(""); setMessage(remove ? "GitHub access disconnected." : "Connected. You can now index repositories this token can read.");
+      window.dispatchEvent(new Event("chalkie:repository-access-updated"));
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not connect GitHub."); }
     finally { setBusy(false); }
   }

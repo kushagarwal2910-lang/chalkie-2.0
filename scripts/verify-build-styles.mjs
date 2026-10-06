@@ -8,6 +8,7 @@ import { pathToFileURL } from "node:url";
 const notebookSelectors = [
   "studio-shell", "studio-header", "studio-panel", "studio-board",
   "studio-composer", "studio-mobile-tabs",
+  "repository-context", "attachment-source",
 ];
 
 export function verifyPageStyles(html, readStylesheet) {

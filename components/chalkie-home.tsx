@@ -10,6 +10,8 @@ import type { LessonPlan } from "@/lib/lesson-schema";
 import { ProviderControl } from "@/components/provider-control";
 import { ChalkieIcon } from "@/components/chalkie-icon";
 import { RepositoryAccess } from "@/components/repository-access";
+import { RepositoryContext } from "@/components/repository-context";
+import { emptyRepositoryInput, saveRepositoryDraft } from "@/lib/repository-input";
 
 const startingPoints = [
   { category: "Developer onboarding", title: "Find your place in the system", question: "https://github.com/dockersamples/example-voting-app" },
@@ -56,6 +58,8 @@ export function ChalkieHome() {
   const driveDialogRef = useRef<HTMLDialogElement>(null);
   const [question, setQuestion] = useState("");
   const [audience, setAudience] = useState("developer");
+  const [repositoryContext, setRepositoryContext] = useState(emptyRepositoryInput);
+  const [readingDocuments, setReadingDocuments] = useState(false);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<"recent" | "title">("recent");
   const [recent, setRecent] = useState<LessonPlan[]>([]);
@@ -126,7 +130,13 @@ export function ChalkieHome() {
 
   function begin(questionText: string) {
     const value = questionText.trim();
-    if (/^https:\/\/github\.com\/[^/]+\/[^/]+/i.test(value)) router.push(`/studio?q=${encodeURIComponent(value)}&audience=${encodeURIComponent(audience)}`);
+    if (readingDocuments) return;
+    if (/^https:\/\/github\.com\/[^/]+\/[^/]+/i.test(value)) {
+      try {
+        const draft = repositoryContext.instructions || repositoryContext.notes || repositoryContext.documents.length ? saveRepositoryDraft(repositoryContext) : null;
+        router.push(`/studio?q=${encodeURIComponent(value)}&audience=${encodeURIComponent(audience)}${draft ? `&draft=${draft}` : ""}`);
+      } catch { setDriveNotice("Could not save your context. Check document limits and allow storage in this tab, then try again."); }
+    }
     else setDriveNotice("Paste a GitHub repository URL, such as https://github.com/your-team/repository.");
   }
   function submit(event: FormEvent) { event.preventDefault(); begin(question); }
@@ -179,10 +189,11 @@ export function ChalkieHome() {
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-3 min-[480px]:flex-row min-[480px]:items-center">
               <input id="new-question" ref={questionRef} value={question} onChange={event => setQuestion(event.target.value)} maxLength={1000} placeholder="https://github.com/your-team/repository" aria-label="GitHub repository URL" className="h-12 min-w-0 flex-1 rounded-xl border border-[#363a40] bg-[#17191c] px-4 text-base text-[#f3f3ee] outline-none placeholder:text-[#9297a1] focus:border-[#c4b5fd] focus:ring-2 focus:ring-[#c4b5fd]/15 sm:text-sm" />
-              <button type="submit" disabled={question.trim().length < 3} className={`inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-[#c4b5fd] px-5 text-sm font-semibold text-[#25202e] transition-colors hover:bg-[#d2c7fc] disabled:cursor-not-allowed disabled:bg-[#403b4b] disabled:text-[#a9a1b8] ${focusRing}`}>Explain repository <ArrowRight size={16} /></button>
+              <button type="submit" disabled={readingDocuments || question.trim().length < 3} className={`inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-[#c4b5fd] px-5 text-sm font-semibold text-[#25202e] transition-colors hover:bg-[#d2c7fc] disabled:cursor-not-allowed disabled:bg-[#403b4b] disabled:text-[#a9a1b8] ${focusRing}`}>Explain repository <ArrowRight size={16} /></button>
             </div>
           </form>
           <div className="repository-composer-tools mt-3"><label>Explain for <select aria-label="Explanation audience" value={audience} onChange={e => setAudience(e.target.value)}><option value="developer">Developers</option><option value="cross-team">Product & engineering</option><option value="leadership">Leadership & investors</option></select></label><RepositoryAccess /></div>
+          <RepositoryContext value={repositoryContext} onChange={setRepositoryContext} onBusyChange={setReadingDocuments} />
           <p className="mt-3 text-xs text-[#a9adb6]">Reads container files, infrastructure declarations, dependencies, and docs. Application source code is excluded.</p>
           <p className="mt-3 text-xs leading-5 text-[#9297a1]">A source-backed architecture diagram and an explanation you can hear.</p>
         </section>

@@ -6,6 +6,7 @@ export type Evidence = {
   endLine: number;
   kind: BlueprintKind;
   text: string;
+  origin?: "attachment";
 };
 export type RepositoryIndex = {
   version: 1;
@@ -17,7 +18,8 @@ export type RepositoryIndex = {
   files: Array<{ path: string; kind: BlueprintKind; bytes: number }>;
   evidence: Evidence[];
   warnings: string[];
+  instructions?: string;
 };
 export class RepositoryError extends Error {
-  constructor(message: string, public code = "REPOSITORY_ERROR", public retryable = false) { super(message); }
+  constructor(message: string, public code = "REPOSITORY_ERROR", public retryable = false, public nextRetryAt?: number) { super(message); }
 }

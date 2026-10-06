@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, memo } from "react";
 import Image from "next/image";
+import { AttachmentSource } from "@/components/attachment-source";
 import { ReactFlow, ReactFlowProvider, Background, BackgroundVariant, Controls, MiniMap, Handle, Position, BaseEdge, EdgeLabelRenderer, Panel, useReactFlow, type Node, type NodeChange, type NodeProps, type Edge, type EdgeProps, type Connection, type Viewport } from "@xyflow/react";
 import { Database, Server, Cloud, Network, ListOrdered, HardDrive, User, Globe, Route, Cog, Brain, Workflow, Box, FileText, Layers, CircleHelp, X, Undo2, Redo2, Download, LocateFixed, LayoutGrid, Search } from "lucide-react";
 import type { LessonPlan, LessonSegment, VisualObject, VisualConnection } from "@/lib/lesson-schema";
@@ -169,7 +170,7 @@ function ArchitectureCanvas({ lesson, activeSegment, isPresenting, isSpeaking = 
         {editable && <><label>Display name<input key={selected.id + "-" + selected.label} defaultValue={selected.label} maxLength={90} onBlur={e => { if (e.target.value.trim() && e.target.value !== selected.label) updateNode({ label: e.target.value.trim() }); }} /></label><label><Search size={13} /> Find a visual<input value={assetSearch} onChange={e => setAssetSearch(e.target.value)} placeholder="Postgres, database, cloud…" /></label><div className="architecture-asset-picker">{assetCatalog.filter(a => !assetSearch ? a.id.startsWith("concept:") : (a.name + " " + a.aliases.join(" ")).toLowerCase().includes(assetSearch.toLowerCase())).slice(0, 24).map(asset => <button key={asset.id} title={asset.name} aria-label={"Use " + asset.name + " visual"} onClick={() => updateNode({ assetId: asset.id })}><ArchitectureAsset id={asset.id} size={24} /></button>)}</div></>}
       </>}
       {selectedEdge && <><h3>{selectedEdge.label}</h3><p>{display?.objects.find(o => o.id === selectedEdge.from)?.label} → {display?.objects.find(o => o.id === selectedEdge.to)?.label}</p><small>{selectedEdge.certainty ?? "Legacy relationship"}</small>{editable && <label>Connection label<input key={selectedEdge.id + selectedEdge.label} defaultValue={selectedEdge.label} maxLength={60} onBlur={e => { if (display && e.target.value.trim() && e.target.value !== selectedEdge.label) commit({ ...display, connections: display.connections.map(edge => edge.id === selectedEdge.id ? { ...edge, label: e.target.value.trim() } : edge) }); }} /></label>}</>}
-      <div className="architecture-evidence">{(selected?.evidenceIds ?? selectedEdge?.evidenceIds ?? []).map(id => { const source = lesson?.sources.find(s => s.id === id); return source ? <a key={id} href={source.url} target="_blank" rel="noreferrer"><FileText size={13} />{source.title}</a> : null; })}</div>
+      <div className="architecture-evidence">{(selected?.evidenceIds ?? selectedEdge?.evidenceIds ?? []).map(id => { const source = lesson?.sources.find(s => s.id === id); return source?.origin === "attachment" ? <AttachmentSource key={id} source={source} /> : source ? <a key={id} href={source.url} target="_blank" rel="noreferrer"><FileText size={13} />{source.title}</a> : null; })}</div>
     </aside>}
   </div>;
 }

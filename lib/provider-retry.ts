@@ -83,6 +83,12 @@ export function retryCountdown(nextRetryAt: number | undefined, now: number): st
 }
 
 export function providerRetryView(failure: ProviderFailure | null, quota: ProviderQuota | null, now: number) {
+  if (failure?.code.startsWith("GITHUB_") || failure?.code === "REPOSITORY_NOT_FOUND") {
+    const countdown = retryCountdown(failure.nextRetryAt, now);
+    return { canRetry: failure.retryable && !countdown, countdown, needsKeys: false, needsRepositoryAccess: true,
+      title: failure.message,
+      detail: countdown ? `GitHub retry window opens in ${countdown}. Groq keys do not change this limit.` : "Open Repository access to check GitHub permissions, then retry. Your board and submitted context are preserved." };
+  }
   const unavailable = quota?.allUnavailable === true;
   const reason = unavailable ? quota?.degradationReason : undefined;
   const needsKeys = reason === "no_keys" || reason === "all_keys_invalid";
@@ -95,7 +101,7 @@ export function providerRetryView(failure: ProviderFailure | null, quota: Provid
     all_keys_exhausted: "The Groq keys have reached a provider limit.",
     cooldown_active: "The Groq keys are temporarily unavailable.",
   };
-  return { canRetry: retryable, countdown, needsKeys,
+  return { canRetry: retryable, countdown, needsKeys, needsRepositoryAccess: false,
     title: reason ? messages[reason] : failure?.message || "The request could not be completed.",
     detail: countdown ? `Provider retry window opens in ${countdown}. Availability will be checked when you retry.`
       : needsKeys ? "Open Manage keys, save your keys, then retry this request."
@@ -108,6 +114,7 @@ export type ProviderRetryState<Operation> = {
   requestId: number; status: "idle" | "pending" | "failed"; operation: Operation | null; failure: ProviderFailure | null;
 };
 export type ProviderRetryEvent<Operation> =
+  | { type: "repository-access-updated" }
   | { type: "begin"; requestId: number; operation: Operation }
   | { type: "fail"; requestId: number; failure: ProviderFailure }
   | { type: "complete"; requestId: number }
@@ -115,6 +122,7 @@ export type ProviderRetryEvent<Operation> =
 
 /** A late response cannot overwrite a newer request or its retry payload. */
 export function providerRetryReducer<Operation>(state: ProviderRetryState<Operation>, event: ProviderRetryEvent<Operation>): ProviderRetryState<Operation> {
+  if (event.type === "repository-access-updated") return state.status === "failed" && state.failure?.code.startsWith("GITHUB_") ? { ...state, failure: { ...state.failure, nextRetryAt: undefined } } : state;
   if (event.type === "begin") return event.requestId > state.requestId ? { requestId: event.requestId, status: "pending", operation: event.operation, failure: null } : state;
   if (event.type === "clear") return event.requestId >= state.requestId ? { requestId: event.requestId, status: "idle", operation: null, failure: null } : state;
   if (event.requestId !== state.requestId || state.status !== "pending") return state;

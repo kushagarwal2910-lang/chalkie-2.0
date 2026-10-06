@@ -15,7 +15,7 @@ export function importArchitectureDocument(text: string): LessonPlan {
   const nodeIds = new Set(lesson.objects.map(n => n.id));
   const visualIds = new Set([...nodeIds, ...lesson.connections.map(e => e.id)]);
   const sourceIds = new Set(lesson.sources.map(s => s.id));
-  for (const source of lesson.sources) if (!/^https?:\/\//i.test(source.url)) throw new Error("Source links must use HTTP or HTTPS.");
+  for (const source of lesson.sources) if (!(source.origin === "attachment" && source.url === "") && !/^https?:\/\//i.test(source.url)) throw new Error("Source links must use HTTP or HTTPS.");
   for (const item of [...lesson.objects, ...lesson.connections]) if (item.evidenceIds?.some(id => !sourceIds.has(id))) throw new Error("The document references missing evidence.");
   for (const edge of lesson.connections) if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to) || edge.from === edge.to) throw new Error("A connection references a missing component.");
   for (const step of lesson.segments) if (step.targetIds.some(id => !visualIds.has(id))) throw new Error("An explanation step references a missing component.");

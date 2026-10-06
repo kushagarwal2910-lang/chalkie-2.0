@@ -47,6 +47,9 @@ import { newestProviderQuota, parseProviderFailure, providerFailureError, provid
 import { readProviderEventStream } from "@/lib/provider-event-stream";
 import { ChalkieIcon } from "@/components/chalkie-icon";
 import { RepositoryAccess } from "@/components/repository-access";
+import { RepositoryContext } from "@/components/repository-context";
+import { AttachmentSource } from "@/components/attachment-source";
+import { emptyRepositoryInput, takeRepositoryDraft, type RepositoryInput } from "@/lib/repository-input";
 import { importArchitectureDocument } from "@/lib/architecture/document";
 import { VoiceSettingsDialog } from "@/components/voice-settings-dialog";
 import { StudioWorkspace } from "@/components/studio-workspace";
@@ -84,7 +87,7 @@ const emptyLesson: LessonPlan = {
 };
 
 type RetryOperation =
-  | { kind: "lesson"; question: string }
+  | { kind: "lesson"; question: string; context: RepositoryInput; contextIndexId?: string }
   | { kind: "followup"; question: string; currentLesson: LessonPlan }
   | { kind: "transcribe"; audio: Blob }
   | { kind: "speech"; lessonId: string; stepIndex: number };
@@ -112,6 +115,8 @@ export function ChalkieStudio() {
     return value === "cross-team" || value === "leadership" ? value : "developer";
   });
   const [promptMode, setPromptMode] = useState<"auto" | "doubt" | "new">("auto");
+  const [repositoryContext, setRepositoryContext] = useState(emptyRepositoryInput);
+  const [readingDocuments, setReadingDocuments] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   // null shows the completed board; -1 stages the first scene without revealing it.
@@ -153,6 +158,11 @@ export function ChalkieStudio() {
   const [toast, setToast] = useState<string | null>(null);
   const [providerQuota, setProviderQuota] = useState<ProviderQuota | null>(null);
   const [retryState, dispatchRetry] = useReducer(providerRetryReducer<RetryOperation>, initialRetryState);
+  useEffect(() => {
+    const updated = () => dispatchRetry({ type: "repository-access-updated" });
+    window.addEventListener("chalkie:repository-access-updated", updated);
+    return () => window.removeEventListener("chalkie:repository-access-updated", updated);
+  }, []);
   const providerRequestIdRef = useRef(0);
   const configuredKeysetRef = useRef<string | null>(null);
   const [retryNow, setRetryNow] = useState(() => Date.now());
@@ -247,11 +257,15 @@ export function ChalkieStudio() {
 
     if (initialQuestion.length >= 3) {
       startupHandledRef.current = true;
+      let context: RepositoryInput;
+      try { context = takeRepositoryDraft(params.get("draft")); }
+      catch (error) { window.setTimeout(() => { setPrompt(initialQuestion); setToast(error instanceof Error ? error.message : "Add your context again."); }, 0); return; }
       params.delete("q");
+      params.delete("draft");
       const suffix = params.toString();
       window.history.replaceState({}, "", `${window.location.pathname}${suffix ? `?${suffix}` : ""}`);
       // Defer until after React's development mount check so the request is not aborted by its test cleanup.
-      window.setTimeout(() => void generateLesson(initialQuestion), 0);
+      window.setTimeout(() => { setRepositoryContext(context); void generateLesson(initialQuestion, context); }, 0);
       return;
     }
 
@@ -384,7 +398,7 @@ export function ChalkieStudio() {
   async function retryFailedRequest() {
     const operation = retryState.operation;
     if (!operation || retryState.status !== "failed" || isBusy || !retryView.canRetry) return;
-    if (operation.kind === "lesson") await generateLesson(operation.question);
+    if (operation.kind === "lesson") await generateLesson(operation.question, operation.context, operation.contextIndexId);
     else if (operation.kind === "followup") await askFollowUp(operation.question, lesson);
     else if (operation.kind === "transcribe") await transcribeQuestion(operation.audio);
     else if (operation.lessonId === lesson.id) {
@@ -396,7 +410,7 @@ export function ChalkieStudio() {
   function submitQuestion(event: FormEvent) {
     event.preventDefault();
     const question = prompt.trim();
-    if (!canSubmitPrompt) return;
+    if (!canSubmitPrompt || readingDocuments) return;
     setPrompt("");
     void askQuestion(question);
   }
@@ -407,12 +421,12 @@ export function ChalkieStudio() {
     else await askFollowUp(cleanQuestion);
   }
 
-  async function generateLesson(question: string) {
+  async function generateLesson(question: string, context: RepositoryInput = repositoryContext, contextIndexId?: string) {
     stopPlayback(true);
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-    const requestId = beginProviderRequest({ kind: "lesson", question });
+    const requestId = beginProviderRequest({ kind: "lesson", question, context, contextIndexId });
     const current = () => abortRef.current === controller && !controller.signal.aborted;
     setIsGenerating(true);
     setIsFollowUpGenerating(false);
@@ -426,7 +440,7 @@ export function ChalkieStudio() {
         method: "POST",
         signal: controller.signal,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, sessionId, audience }),
+        body: JSON.stringify({ question, sessionId, audience, context, contextIndexId }),
       });
       if (!response.ok) throw providerFailureError(await response.json().catch(() => ({})), "The lesson connection could not be established");
       if (!response.body) throw new Error("The lesson connection could not be established");
@@ -455,6 +469,7 @@ export function ChalkieStudio() {
       setIsPlaying(true);
       setRevealedStep(-1);
       setLesson(generated);
+      setRepositoryContext(emptyRepositoryInput());
       setPromptMode("auto");
       setActiveStep(0);
       setLastAnswer("");
@@ -902,7 +917,7 @@ export function ChalkieStudio() {
           </div>
           <div className="flex flex-wrap gap-2">
             {retryState.status === "failed" && <button type="button" onClick={() => void retryFailedRequest()} disabled={isBusy || !retryView.canRetry} className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-[#e9bd92] px-3 text-xs font-semibold text-[#30251e] disabled:cursor-not-allowed disabled:opacity-45"><RotateCcw size={13} /> Retry request</button>}
-            <button type="button" onClick={() => document.querySelector<HTMLButtonElement>("[title='Provider keys and live rate limits']")?.click()} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-[#75553a] px-3 text-xs font-semibold text-[#f1cba7]"><KeyRound size={13} /> Manage keys</button>
+            <button type="button" onClick={() => document.querySelector<HTMLButtonElement>(retryView.needsRepositoryAccess ? "[title='Repository access']" : "[title='Provider keys and live rate limits']")?.click()} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-[#75553a] px-3 text-xs font-semibold text-[#f1cba7]"><KeyRound size={13} />{retryView.needsRepositoryAccess ? "Repository access" : "Manage keys"}</button>
           </div>
         </div>
       )}
@@ -928,12 +943,12 @@ export function ChalkieStudio() {
               <div className="studio-panel-scroll px-3">
                 {!displaySources.length && <div className="studio-empty-card"><FileText size={25} /><h3>{lesson.sources.length ? "No matching sources" : "A little context goes a long way"}</h3><p>{lesson.sources.length ? "Try a different title or publisher." : "Repository blueprint citations will appear here after indexing."}</p></div>}
                 <div className="space-y-1">
-                  {displaySources.map((source, index) => <a key={source.id} href={source.url} target="_blank" rel="noopener noreferrer" className="studio-source" title={source.title}>
+                  {displaySources.map((source, index) => source.origin === "attachment" ? <AttachmentSource key={source.id} source={source} /> : <a key={source.id} href={source.url} target="_blank" rel="noopener noreferrer" className="studio-source" title={source.title}>
                     <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#2d3037] ${sourceColors[index % sourceColors.length]}`}>{source.url.includes("youtube") ? <Play size={15} /> : <FileText size={15} />}</span>
                     <span className="min-w-0 flex-1"><span className="line-clamp-2 break-words text-sm font-medium leading-5 text-[#e5e6e1]">{source.title}</span><span className="mt-1 block truncate text-xs text-[#a9adb6]">{source.publisher}</span></span><ArrowUpRight size={14} className="mt-1 shrink-0 text-[#838994]" />
                   </a>)}
                 </div>
-                {lesson.repository && <button disabled={isBusy} onClick={() => void generateLesson(lesson.repository!.url)} className="studio-secondary my-4 w-full gap-2 text-xs"><RotateCcw size={14} /> Index latest revision</button>}
+                {lesson.repository && <button disabled={isBusy} onClick={() => void generateLesson(lesson.repository!.url, emptyRepositoryInput(), lesson.repository!.indexId)} className="studio-secondary my-4 w-full gap-2 text-xs"><RotateCcw size={14} /> Index latest revision</button>}
               </div>
               <div className="studio-panel-footer">
                 <p className="mb-3 flex items-center gap-2 text-xs text-[#a9adb6]"><span className={`h-1.5 w-1.5 shrink-0 rounded-full ${isBusy ? "animate-pulse bg-[#e9bd92]" : "bg-[#a9c9b0]"}`} /><span className="truncate">{isBusy ? generationStage : lesson.sources.length ? `${lesson.sources.length} sources for this lesson` : "Ready for your first question"}</span></p>
@@ -969,10 +984,11 @@ export function ChalkieStudio() {
               <div className="studio-composer">
                 <div className="repository-composer-tools"><label>Explain for <select aria-label="Explanation audience" value={audience} onChange={e => setAudience(e.target.value as typeof audience)} disabled={isBusy}><option value="developer">Developers</option><option value="cross-team">Product & engineering</option><option value="leadership">Leadership & investors</option></select></label><RepositoryAccess /></div>
                 {hasLesson && <div className="mb-2 flex flex-wrap gap-1" role="group" aria-label="Question mode">{(["auto", "doubt", "new"] as const).map((mode) => <button type="button" key={mode} onClick={() => setPromptMode(mode)} aria-pressed={promptMode === mode} className="studio-mode">{mode === "auto" ? <Sparkles size={12} /> : mode === "doubt" ? <MessageSquare size={12} /> : <Plus size={12} />}{mode === "auto" ? "Auto" : mode === "doubt" ? "Follow-up" : "New repository"}</button>)}</div>}
+                {(!hasLesson || promptMode === "new" || /^https:\/\/github\.com\//i.test(prompt.trim())) && <RepositoryContext value={repositoryContext} onChange={setRepositoryContext} disabled={isBusy} onBusyChange={setReadingDocuments} />}
                 <form onSubmit={submitQuestion} className="studio-prompt-form">
                   <textarea maxLength={1000} value={prompt} onChange={(event) => setPrompt(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} rows={1} aria-label="Repository URL or follow-up question" placeholder={promptMode === "new" || !hasLesson ? "https://github.com/your-team/repository" : "Ask about this architecture…"} />
                   <button type="button" onClick={toggleRecording} aria-label={isRecording ? "Stop recording" : "Ask with your voice"} title={isRecording ? "Stop recording" : "Ask with your voice"} className={`studio-icon-button ${isRecording ? "voice-ring bg-[#493134] text-[#f0aca9]" : "text-[#c4b5fd]"}`}><Mic size={18} /></button>
-                  <button type="submit" aria-label="Send question" title="Send question" className="studio-send" disabled={!canSubmitPrompt}>{isBusy ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#292333]/30 border-t-[#292333]" /> : <Send size={17} />}</button>
+                  <button type="submit" aria-label="Send question" title="Send question" className="studio-send" disabled={!canSubmitPrompt || readingDocuments}>{isBusy ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#292333]/30 border-t-[#292333]" /> : <Send size={17} />}</button>
                 </form>
                 <p className="studio-composer-hint" role="status">{isRecording ? "Listening — pause when you finish" : voiceState === "transcribing" ? "Turning your voice into a question…" : voiceState === "thinking" ? generationStage : voiceState === "speaking" ? "Chalkie is explaining · ask a question to interrupt" : "Blueprints and documentation · source code stays out of the index"}</p>
               </div>

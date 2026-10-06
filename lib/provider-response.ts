@@ -15,7 +15,7 @@ export class ProviderResponseError extends Error {
 
 /** Never return a provider's raw response body, credentials, or stack to clients. */
 export function providerFailure(error: unknown, latestQuota?: GroqQuotaSnapshot): { status: number; failure: ProviderFailure } {
-  if (error instanceof RepositoryError) return { status: 422, failure: { code: error.code, message: error.message, retryable: error.retryable } };
+  if (error instanceof RepositoryError) return { status: error.code === "GITHUB_RATE_LIMIT" ? 429 : 422, failure: { code: error.code, message: error.message, retryable: error.retryable, nextRetryAt: error.nextRetryAt } };
   const details = error as { code?: string; name?: string; quota?: GroqQuotaSnapshot } | undefined;
   const quota = error instanceof GroqFreeLimitError ? error.quota : details?.quota ?? latestQuota;
   const retry = { ...(quota ? { quota } : {}), ...(quota?.nextRetryAt ? { nextRetryAt: quota.nextRetryAt } : {}) };

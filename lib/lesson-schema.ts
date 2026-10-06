@@ -34,7 +34,8 @@ export const safeLabelPlacementSchema = z.preprocess((val) => {
 export const researchSourceSchema = z.object({
   id: z.string().min(1).max(80),
   title: z.string().min(1).max(180),
-  url: z.string().url().or(z.string().min(1)),
+  url: z.string().url().or(z.string().min(1)).or(z.literal("")),
+  origin: z.enum(["attachment"]).optional(),
   publisher: z.string().max(100).default("Web source"),
   summary: z.string().max(500),
   path: z.string().optional(),

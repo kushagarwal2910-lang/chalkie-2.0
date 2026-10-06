@@ -251,3 +251,23 @@ div[data-next-badge],
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+.repository-context { margin-top: 12px; border: 1px solid #363a40; border-radius: 12px; color: #d4d5dc; font-size: 12px; }
+.repository-context > summary { display: flex; align-items: center; gap: 8px; padding: 12px; cursor: pointer; }
+.repository-context > summary > span { margin-left: auto; color: #a9adb6; font-size: 11px; }
+.repository-context fieldset { display: grid; gap: 9px; padding: 0 12px 12px; border: 0; min-width: 0; }
+.repository-context fieldset:disabled { opacity: .6; }
+.repository-context label { font-weight: 500; margin-top: 4px; }
+.repository-context textarea { width: 100%; min-height: 68px; resize: vertical; max-height: 180px; padding: 10px; border: 1px solid #45414e; border-radius: 8px; background: #17191c; color: #f3f3ee; font: inherit; line-height: 1.5; }
+.repository-context textarea:focus { outline: 2px solid #c4b5fd; outline-offset: 1px; }
+.repository-context-files { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.repository-context-files > span, .repository-context p { color: #a9adb6; font-size: 11px; line-height: 1.6; }
+.repository-context-file { display: flex; gap: 8px; align-items: center; border: 1px solid #363a40; padding: 8px; border-radius: 7px; }
+.repository-context-file > span { overflow-wrap: anywhere; flex: 1; }
+.repository-context-file button { padding: 5px; }
+.repository-context .repository-context-error { padding: 0 12px 12px; color: #f1cba7; }
+.studio-composer .repository-context { margin: 0 0 10px; max-height: 260px; overflow-y: auto; }
+.attachment-source { margin: 6px 0; padding: 10px; border: 1px solid #363a40; border-radius: 10px; font-size: 12px; }
+.attachment-source summary { display: flex; align-items: center; gap: 8px; cursor: pointer; overflow-wrap: anywhere; }
+.attachment-source summary small { display: block; color: #a9adb6; font-size: 10px; margin-top: 4px; }
+.attachment-source p { white-space: pre-wrap; overflow-wrap: anywhere; padding-top: 10px; line-height: 1.6; color: #b8bdc7; }
