@@ -1,9 +1,10 @@
 import type { NextRequest } from "next/server";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { getGroqQuotaSnapshot, GroqFreeLimitError } from "@/lib/groq-pool";
 import { providerEventStream, providerFailureResponse } from "@/lib/provider-response";
 import { ingestRepository, parseRepositoryUrl } from "@/lib/architecture/github";
-import { githubToken, repositoryOwner, saveRepositoryIndex, loadRepositoryIndex } from "@/lib/architecture/index-store";
+import { repositoryOwner, saveRepositoryIndex, loadRepositoryIndex } from "@/lib/architecture/index-store";
 import { createRepositoryLesson } from "@/lib/architecture/explanation";
 import { repositoryInputSchema } from "@/lib/repository-input";
 import { withSupportingContext } from "@/lib/architecture/supporting-context";
@@ -17,13 +18,15 @@ export async function POST(request: NextRequest) {
   const input = parsed.data;
   try { parseRepositoryUrl(input.question); } catch (error) { return providerFailureResponse(error); }
   const ownerKey = await repositoryOwner();
-  const token = await githubToken();
+  // Older versions accepted private-repository credentials; public imports never use them.
+  (await cookies()).delete("chalkie_github");
   return providerEventStream(request, async (send, signal) => {
     const quota = await getGroqQuotaSnapshot(input.sessionId, input.preferredGroqKeyId);
     send("provider_status", quota);
-    if (quota.allUnavailable) throw new GroqFreeLimitError(quota);
     const previous = input.contextIndexId ? await loadRepositoryIndex(input.contextIndexId, ownerKey) : undefined;
-    const repository = await ingestRepository(input.question, { ownerKey, token, signal, allowEmptyEvidence: Boolean(input.context.notes || input.context.documents.length || previous?.evidence.some(e => e.origin === "attachment")), onStatus: message => send("status", { stage: "indexing", message }) });
+    const repository = await ingestRepository(input.question, { ownerKey, signal, allowEmptyEvidence: Boolean(input.context.notes || input.context.documents.length || previous?.evidence.some(e => e.origin === "attachment")), onStatus: message => send("status", { stage: "indexing", message }) });
+    // Explain public-access failures even when no model key is configured.
+    if (quota.allUnavailable) throw new GroqFreeLimitError(quota);
     const index = withSupportingContext(repository, input.context, previous);
     await saveRepositoryIndex(index);
     send("status", { stage: "visualizing", message: "Indexed " + index.files.length + " blueprints. Designing your architecture walkthrough…" });

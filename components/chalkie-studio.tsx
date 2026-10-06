@@ -165,11 +165,6 @@ export function ChalkieStudio() {
   const [toast, setToast] = useState<string | null>(null);
   const [providerQuota, setProviderQuota] = useState<ProviderQuota | null>(null);
   const [retryState, dispatchRetry] = useReducer(providerRetryReducer<RetryOperation>, initialRetryState);
-  useEffect(() => {
-    const updated = () => dispatchRetry({ type: "repository-access-updated" });
-    window.addEventListener("chalkie:repository-access-updated", updated);
-    return () => window.removeEventListener("chalkie:repository-access-updated", updated);
-  }, []);
   const providerRequestIdRef = useRef(0);
   const configuredKeysetRef = useRef<string | null>(null);
   const [retryNow, setRetryNow] = useState(() => Date.now());
@@ -924,8 +919,8 @@ export function ChalkieStudio() {
             {retryState.status === "failed" && retryState.operation && "question" in retryState.operation && <p className="mt-1 truncate text-xs text-[#dbc2ab]">Pending {retryState.operation.kind === "followup" ? "follow-up" : "lesson"}: {retryState.operation.question}</p>}
           </div>
           <div className="flex flex-wrap gap-2">
-            {retryState.status === "failed" && <button type="button" onClick={() => void retryFailedRequest()} disabled={isBusy || !retryView.canRetry} className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-[#e9bd92] px-3 text-xs font-semibold text-[#30251e] disabled:cursor-not-allowed disabled:opacity-45"><RotateCcw size={13} /> Retry request</button>}
-            <button type="button" onClick={() => document.querySelector<HTMLButtonElement>(retryView.needsRepositoryAccess ? "[title='Repository access']" : "[title='Provider keys and live rate limits']")?.click()} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-[#75553a] px-3 text-xs font-semibold text-[#f1cba7]"><KeyRound size={13} />{retryView.needsRepositoryAccess ? "Repository access" : "Manage keys"}</button>
+            {retryState.status === "failed" && retryState.failure?.code !== "PUBLIC_REPOSITORY_REQUIRED" && <button type="button" onClick={() => void retryFailedRequest()} disabled={isBusy || !retryView.canRetry} className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-[#e9bd92] px-3 text-xs font-semibold text-[#30251e] disabled:cursor-not-allowed disabled:opacity-45"><RotateCcw size={13} /> Retry request</button>}
+            <button type="button" onClick={() => document.querySelector<HTMLButtonElement>(retryView.needsRepositoryAccess ? "[title='Repository access']" : "[title='Provider keys and live rate limits']")?.click()} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-[#75553a] px-3 text-xs font-semibold text-[#f1cba7]">{retryView.needsRepositoryAccess ? <CircleHelp size={13} /> : <KeyRound size={13} />}{retryView.needsRepositoryAccess ? "Import details" : "Manage keys"}</button>
           </div>
         </div>
       )}
@@ -983,7 +978,7 @@ export function ChalkieStudio() {
                   <div className="studio-sketch" aria-hidden="true"><span /><span /><span /><svg viewBox="0 0 220 100"><path d="M55 50H85M135 50H165M110 32V16H190V50" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" /></svg></div>
                   <p className="mb-3 text-[11px] font-semibold uppercase tracking-[.18em] text-[#a9c9b0]">From repository to shared understanding</p>
                   <h1 className="text-balance text-2xl font-medium tracking-[-.035em] sm:text-3xl">See how it all connects.</h1>
-                  <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#a9adb6]">Paste your GitHub repository below. Chalkie reads its blueprints and explains the architecture, one connection at a time.</p>
+                  <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#a9adb6]">Paste a public GitHub repository below. Chalkie reads its blueprints and explains the architecture, one connection at a time. No GitHub token needed.</p>
                   <p className="mx-auto mt-4 max-w-sm text-xs leading-5 text-[#a9adb6]">Docker · Infrastructure · Dependencies · Documentation</p>
                 </div></div>}
                 {isGenerating && <div className="studio-board-loading" role="status"><div className="m-auto max-w-sm p-6 text-center"><Waves className="mx-auto animate-pulse text-[#c4b5fd]" size={32} /><h2 className="mt-5 text-xl font-medium tracking-[-.03em]">Connecting the dots</h2><p className="mt-2 text-sm leading-6 text-[#a9adb6]">{generationStage}</p>{lastHeard && <p className="mt-4 line-clamp-2 text-xs italic text-[#a9adb6]">“{lastHeard}”</p>}</div></div>}

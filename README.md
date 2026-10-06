@@ -11,7 +11,7 @@ pnpm install
 pnpm dev
 ```
 
-Open the local URL printed by the server. Add a Groq key through **Provider keys**, or set `GROQ_API_KEY` in `.env.local`. Paste a GitHub repository URL and choose an audience. For private repositories, open **Repository access** and supply a fine-grained GitHub token restricted to the selected repositories, with Contents read access. Public repositories also benefit from an authenticated token's API allowance.
+Open the local URL printed by the server. Add a Groq key through **Provider keys**, or set `GROQ_API_KEY` in `.env.local`. Paste a **public** GitHub repository URL and choose an audience. No GitHub account connection or token is required. Private repositories are not supported; unavailable repositories show a public-access explanation instead of a token form.
 
 The app generates an initial walkthrough automatically. Follow-up questions retrieve evidence from the same indexed commit, then either focus existing components or append new components and narration. Voice input uses Groq transcription; narration uses device speech by default, with optional Groq audio.
 
@@ -21,13 +21,15 @@ Open **Add instructions & documentation** on the home page or in the studio's ne
 
 Uploads support UTF-8 `.md`, `.markdown` and `.txt`, at most five files, 100 KB and 20,000 characters per file. Pasted notes allow 20,000 characters; combined documentation is limited to 80,000 characters. Paste text from PDF or Word documents into Supporting notes; binary document parsing and OCR are not included. The home-to-studio handoff uses temporary tab storage, keeping document text and instructions out of URLs. Failed requests retain their original submitted context in memory for retry.
 
-GitHub and Groq have separate credentials and limits. A GitHub access/rate-limit error occurs during ingestion, before model generation. [GitHub's REST limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api) allow 60 unauthenticated requests per hour per originating IP, usually 5,000 with personal authentication. Shared hosting can exhaust the anonymous allowance; connect a GitHub token in **Repository access** or wait for the displayed GitHub reset. The app distinguishes permission denials from primary/secondary rate limits. Multiple Groq keys do not increase GitHub's allowance.
+Public imports download a GitHub ZIP snapshot directly from `codeload.github.com`; they make **zero GitHub REST API calls** and no model calls. The importer does not accept or forward GitHub tokens, cookies, or other user credentials. This avoids the 60-request anonymous REST allowance. GitHub can still temporarily throttle archive downloads; the app honors its retry headers without suggesting extra keys. A 404 cannot reveal whether a repository is private, missing, or the branch name is wrong, so the error explains all of those possibilities.
+
+A bounded, 15-minute in-memory cache keeps redacted public blueprint evidence and its archive ETag. Every reuse revalidates public access with GitHub; it never serves stale cached evidence after access fails. Unchanged archives avoid parsing again, and a 304 avoids transferring the archive again. User instructions and attachments never enter this shared cache. Follow-up questions use the browser-owned saved snapshot, without redownloading the repository. Imports add no AI-token charges; normal Groq generation limits and hosting resource costs still apply.
 
 Model requests select bounded excerpts rather than resending entire documents. The serialized explanation request is capped at 14 KB, including schema/history/repair instructions, with a 3,000-token completion allowance. This is a size guard, not exact token accounting or a guarantee against provider limits. [Groq limits](https://console.groq.com/docs/rate-limits) apply at organization level, so multiple keys in one organization share quota.
 
 ## What is indexed
 
-The ingestion engine lists the repository tree, pins it to a commit, and fetches only candidate blueprint blobs. It does not execute repository files, install their dependencies, or ingest application source files such as `app.ts`, `auth.py`, and `utils.js`.
+The ingestion engine downloads a bounded compressed snapshot and reads its embedded commit SHA for immutable citations. It inspects the ZIP directory and decompresses only allowed blueprint files into memory. Application source can travel inside the compressed archive but is never decompressed, parsed, stored in the index, or sent to the model. No archive files are extracted to disk or executed, and no dependencies are installed. Submodule contents and files excluded by Git archive rules are outside snapshot coverage.
 
 - Dockerfiles and Compose: images, services, exposed ports, declared networks, volumes and startup dependencies.
 - Terraform HCL/JSON: resources, modules, providers and unresolved references.
@@ -52,12 +54,12 @@ The existing Groq key pool, rate-limit handling, streamed status, local saving, 
 ## Configuration and storage
 
 - `GROQ_API_KEY`, optional `_2` and `_3`: managed provider keys. Personal keys can instead be entered in the app. The explanation model is `openai/gpt-oss-120b` with validated JSON output.
-- `BYOK_ENCRYPTION_SECRET`: at least 32 random characters in production; protects personal provider/GitHub cookies. Local development creates `.chalkie-dev-secret`. Never commit that file.
+- `BYOK_ENCRYPTION_SECRET`: at least 32 random characters in production; protects personal provider cookies. Local development creates `.chalkie-dev-secret`. Never commit that file.
 - `CHALKIE_DATA_DIR`: private, writable persistent directory for parsed repository evidence; defaults to `.chalkie-data`. Snapshots expire after seven days and are isolated by an HttpOnly browser-owner cookie. A browser may retain up to 30 snapshots. Reset clears that browser's indexes and saved credentials.
 - `GROQ_STT_MODEL`, `GROQ_TTS_MODEL`, `NEXT_PUBLIC_USE_GROQ_TTS`: optional voice settings. Device speech is the default.
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `SESSION_SECRET`: optional existing Drive backup integration.
 
-Repository evidence is stored on the app server and selected excerpts are sent to Groq to explain it. GitHub tokens stay in encrypted HttpOnly cookies and are used only for GitHub requests. Saved diagrams contain source excerpts and should be shared with the same care as repository documentation. Sharing/exporting a diagram does not grant access to its server-side evidence index; another browser must index the URL with its own repository access before asking follow-ups.
+Repository evidence is stored on the app server and selected excerpts are sent to Groq to explain it. GitHub credentials are not used; old GitHub-token cookies are cleared on the next import, and the retired token endpoint no longer accepts credentials. Saved diagrams contain source excerpts and attached documentation and should be shared with the same care as that documentation. Sharing/exporting a diagram does not grant access to its server-side evidence index; another browser must index the public URL before asking follow-ups.
 
 For deployment, a persistent private volume is required to retain indexes on ephemeral hosts. A replicated service needs shared storage and real organization authentication/authorization before team-wide index sharing. No deployment is performed by the build command.
 
@@ -79,15 +81,15 @@ Set `NODE_VERSION=22.13.0`, `NODE_ENV=production`, `HOSTNAME=0.0.0.0`, and a sta
 
 Render's [free instances](https://render.com/docs/free) have temporary storage and cannot attach a persistent disk. They can demonstrate indexing and explanations, but a restart, spin-down or deployment can remove the server evidence cache; paste the repository URL again to rebuild it. Saved browser diagrams remain available.
 
-For ongoing use, choose a paid instance, attach a [persistent disk](https://render.com/docs/disks) at `/var/data/chalkie`, and set `CHALKIE_DATA_DIR=/var/data/chalkie`. This preserves evidence across deployments within Chalkie's seven-day retention window. Keep the encryption secret stable, since changing it invalidates saved provider and GitHub credentials. A health check can pass without an LLM key; verify a complete repository walkthrough after adding one.
+For ongoing use, choose a paid instance, attach a [persistent disk](https://render.com/docs/disks) at `/var/data/chalkie`, and set `CHALKIE_DATA_DIR=/var/data/chalkie`. This preserves evidence across deployments within Chalkie's seven-day retention window. Keep the encryption secret stable, since changing it invalidates saved provider credentials. A health check can pass without an LLM key; verify a complete repository walkthrough after adding one.
 
 ## Current boundaries
 
-- Each scan is bounded to 120 candidate files, 128 KB per file, about 1.8 MB of content, and 180 GitHub API calls. Partial coverage and parse failures are displayed. Large monorepos may require a later scoped indexing workflow.
+- Each scan is bounded to a 32 MB compressed snapshot, 50,000 archive entries, 120 candidate blueprint files, 128 KB per file, and about 1.8 MB of blueprint content. At most two imports run concurrently per process. Partial coverage and parse failures are displayed. Large monorepos may require a later scoped indexing workflow.
 - Helm templates are not rendered, Terraform remote modules are not downloaded, and live cloud state is not queried. Unsupported templates yield coverage warnings. Follow-ups cannot reveal business logic absent from the allowed blueprints.
 - Retrieval currently ranks bounded evidence lexically; it does not use an embedding database. Automatic diagrams are limited to 160 components and 320 connections; large systems should be explored through successive focused explanations.
 - Node overlap is corrected at layout/drag completion. Complex graphs can still have edge crossings; subsystem filtering and focused playback keep them readable.
-- Repository access currently uses personal fine-grained tokens. Organization accounts, GitHub App installation, shared workspaces and access audits are separate product work.
+- Public repositories only. Private repository authorization, organization accounts, GitHub App installation, shared workspaces and access audits are separate product work.
 
 ## Validation
 
@@ -97,6 +99,6 @@ pnpm typecheck
 pnpm build
 ```
 
-Architecture tests cover the allowlist, redaction, HCL/YAML/Docker parsing, immutable GitHub scans, truncated trees, model-output validation and repair, layout, follow-up merges, JSON round-trips, and index ownership/expiry. Model integration tests use controlled responses; a live Groq key is needed to verify actual generation. The production build also checks the generated page styles.
+Architecture tests cover the allowlist, redaction, HCL/YAML/Docker parsing, public archive imports, commit provenance, size limits, corrupt archives, traversal/link rejection, cancellation, cache revalidation, model-output validation and repair, layout, follow-up merges, JSON round-trips, and index ownership/expiry. Model integration tests use controlled responses; a live Groq key is needed to verify actual generation. The production build also checks the generated page styles.
 
 Main implementation: `lib/architecture/`, `components/chalk-canvas.tsx`, `/api/lesson`, `/api/follow-up`, and `/api/repository-access`.

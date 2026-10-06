@@ -6,7 +6,7 @@ import type { BlueprintKind, Evidence } from "./types.ts";
 const ignoredDirectory = /(^|\/)(node_modules|vendor|\.git|\.next|dist|build|coverage|\.terraform|venv|\.venv|__pycache__|target|generated)(\/|$)/i;
 const docName = /^(readme|architecture|agents|contributing|onboarding|design|deployment|infrastructure|operations|runbook)([._-][\w-]+)?\.(md|mdx|rst|txt)$/i;
 
-/** Only these file classes are fetched. Source-code extensions are never admitted. */
+/** Only these file classes are decompressed and parsed. Application source is never admitted. */
 export function classifyBlueprint(path: string): BlueprintKind | null {
   if (ignoredDirectory.test(path) || /(^|\/)(\.env[^/]*|[^/]*\.tfstate(?:\..*)?|secrets?\.[^/]+)$/i.test(path)) return null;
   const name = path.split("/").pop() ?? "";

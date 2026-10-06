@@ -18,6 +18,7 @@ import { withSupportingContext } from "./supporting-context.ts";
 import { repositoryInputSchema } from "../repository-input.ts";
 import { githubFailure } from "./github-errors.ts";
 import { providerFailure } from "../provider-response.ts";
+import { zipFixture, archiveResponse } from "./test-zip-fixture";
 
 test("blueprint allowlist excludes application source, secrets, state, symlinks and vendored content", () => {
   for (const path of ["app.ts", "auth.py", "lib/utils.js", "src/page.tsx", ".env", ".env.production", "terraform.tfstate", "terraform.tfstate.backup", "secrets.yaml", "node_modules/a/package.json", ".terraform/mod/main.tf", "pnpm-lock.yaml"]) {
@@ -62,28 +63,29 @@ test("GitHub URL validation rejects SSRF and accepts branch names containing sla
   assert.equal(parseRepositoryUrl("https://github.com/org/repo/tree/feature/docs").ref, "feature/docs");
 });
 
-test("ingestion pins blobs to a commit and never downloads application code", async () => {
+test("public archive ingestion pins evidence to its commit and excludes application code", async () => {
   const urls: string[] = [];
   const commit = "a".repeat(40);
   const content = JSON.stringify({ name: "api", dependencies: { next: "16", redis: "5" } });
-  const fetcher = (async (url: string | URL | Request) => {
-    const path = String(url); urls.push(path);
-    const data = path.endsWith("/repos/team/project") ? { default_branch: "main" } : path.includes("/commits/") ? { sha: commit, commit: { tree: { sha: "root" } } } : path.includes("/git/trees/") ? { truncated: false, tree: [{ path: "services/api/package.json", sha: "manifest", mode: "100644", type: "blob", size: content.length }, { path: "app.ts", sha: "private-business-logic", mode: "100644", type: "blob", size: 40000 }, { path: "README.md", sha: "symlink", mode: "120000", type: "blob", size: 100 }] } : { encoding: "base64", size: content.length, content: Buffer.from(content).toString("base64") };
-    return Response.json(data);
+  const fetcher = (async (url: string | URL | Request, init?: RequestInit) => {
+    urls.push(String(url));
+    assert.equal(new Headers(init?.headers).get("Authorization"), null);
+    assert.equal(init?.credentials, "omit");
+    return archiveResponse(zipFixture([
+      { name: "project-HEAD/services/api/package.json", text: content },
+      { name: "project-HEAD/app.ts", text: "never parse or run", invalidDeflate: true },
+      { name: "project-HEAD/README.md", text: "external-target", mode: 0xa1ff },
+    ], commit));
   }) as typeof fetch;
   const index = await ingestRepository("https://github.com/team/project", { ownerKey: "test", fetcher });
   assert.equal(index.repository.commit, commit); assert.equal(index.files.length, 1);
-  assert.ok(!urls.some(url => url.includes("private-business-logic") || url.includes("symlink")));
+  assert.deepEqual(urls, ["https://codeload.github.com/team/project/zip/HEAD"]);
   assert.match(JSON.stringify(retrieveEvidence(index, "Redis")), /redis/);
 });
 
-test("truncated GitHub trees are traversed without silently dropping nested blueprints", async () => {
+test("public archives include nested blueprints without tree API traversal", async () => {
   const content = "# Architecture\nThe service is documented here.";
-  const fetcher = (async (url: string | URL | Request) => {
-    const path = String(url);
-    const data = path.endsWith("/repos/a/b") ? { default_branch: "main" } : path.includes("/commits/") ? { sha: "b".repeat(40), commit: { tree: { sha: "root" } } } : path.endsWith("recursive=1") ? { truncated: true, tree: [] } : path.endsWith("/trees/root") ? { tree: [{ path: "docs", sha: "docs", type: "tree", mode: "040000" }] } : path.endsWith("/trees/docs") ? { tree: [{ path: "ARCHITECTURE.md", sha: "doc", type: "blob", mode: "100644", size: content.length }] } : { content: Buffer.from(content).toString("base64"), size: content.length, encoding: "base64" };
-    return Response.json(data);
-  }) as typeof fetch;
+  const fetcher = (async () => archiveResponse(zipFixture([{ name: "b-HEAD/docs/ARCHITECTURE.md", text: content }], "b".repeat(40)))) as typeof fetch;
   const index = await ingestRepository("https://github.com/a/b", { ownerKey: "test", fetcher });
   assert.equal(index.files[0].path, "docs/ARCHITECTURE.md");
 });
@@ -184,7 +186,7 @@ test("follow-up generation reuses context and can append a grounded component wi
   assert.throws(() => validateExplanation(invalid, evidence, current), /Invalid explanation target/);
 });
 
-test("private repository indexes persist, isolate browser owners, expire, and survive corrupt neighboring cache files", async t => {
+test("saved repository indexes persist, isolate browser owners, expire, and survive corrupt neighboring cache files", async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "chalkie-index-test-"));
   const previous = process.env.CHALKIE_DATA_DIR;
   process.env.CHALKIE_DATA_DIR = directory;
@@ -228,13 +230,10 @@ test("supporting documents are bounded, redacted and stored separately from task
 });
 
 test("a repository without blueprints can use explicit supporting documentation but never scans source code", async () => {
-  const fetcher = (async (url: string | URL | Request) => {
-    const path = String(url);
-    return Response.json(path.endsWith("/repos/a/b") ? { default_branch: "main" } : path.includes("/commits/") ? { sha: "a".repeat(40), commit: { tree: { sha: "root" } } } : { tree: [{ path: "app.ts", type: "blob", mode: "100644", sha: "source", size: 100 }] });
-  }) as typeof fetch;
+  const fetcher = (async () => archiveResponse(zipFixture([{ name: "b-HEAD/app.ts", text: "source", invalidDeflate: true }]))) as typeof fetch;
   await assert.rejects(ingestRepository("https://github.com/a/b", { ownerKey: "a", fetcher }), /Add supporting documentation/);
   const index = await ingestRepository("https://github.com/a/b", { ownerKey: "a", fetcher, allowEmptyEvidence: true });
-  assert.equal(index.evidence.length, 0); assert.match(index.warnings[0], /supporting documentation/);
+  assert.equal(index.evidence.length, 0); assert.ok(index.warnings.some(w => /supporting documentation/.test(w)));
 });
 
 test("prompt and documents reach the overview and follow-up with honest attachment citations", async () => {
@@ -285,17 +284,17 @@ test("large documents and diagram history cannot grow the full Groq request past
   assert.ok(index.evidence.some(e => e.text.length > 1400), "retrieval must not mutate stored evidence");
 });
 
-test("GitHub rate limits, access denial and credentials remain distinct and preserve reset times", async () => {
+test("GitHub download limits and public-only failures stay distinct and preserve retry times", async () => {
   const now = 1800000000000;
-  const limited = await githubFailure(Response.json({ message: "API rate limit exceeded" }, { status: 403, headers: { "x-ratelimit-remaining": "0", "x-ratelimit-reset": String((now + 90000) / 1000) } }), false, now);
+  const limited = await githubFailure(Response.json({ message: "API rate limit exceeded" }, { status: 403, headers: { "x-ratelimit-remaining": "0", "x-ratelimit-reset": String((now + 90000) / 1000) } }), now);
   assert.equal(limited.code, "GITHUB_RATE_LIMIT"); assert.equal(limited.nextRetryAt, now + 91000);
-  assert.match(limited.message, /Connect a GitHub token/);
+  assert.match(limited.message, /No GitHub token is needed/);
   const publicFailure = providerFailure(limited, { source: "byok", allUnavailable: false, keys: [] });
   assert.equal(publicFailure.status, 429); assert.equal(publicFailure.failure.nextRetryAt, now + 91000); assert.equal(publicFailure.failure.quota, undefined);
-  const denied = await githubFailure(Response.json({ message: "Resource not accessible by personal access token: PRIVATE" }, { status: 403, headers: { "x-ratelimit-remaining": "4000" } }), true, now);
+  const denied = await githubFailure(Response.json({ message: "Resource not accessible: PRIVATE" }, { status: 403, headers: { "x-ratelimit-remaining": "4000" } }), now);
   assert.equal(denied.code, "GITHUB_ACCESS_DENIED"); assert.equal(denied.nextRetryAt, undefined); assert.doesNotMatch(denied.message, /PRIVATE/);
-  const secondary = await githubFailure(Response.json({ message: "secondary rate limit" }, { status: 403, headers: { "retry-after": "120" } }), true, now);
+  const secondary = await githubFailure(Response.json({ message: "secondary rate limit" }, { status: 403, headers: { "retry-after": "120" } }), now);
   assert.equal(secondary.nextRetryAt, now + 121000);
-  const unauthenticated = await githubFailure(new Response(null, { status: 401 }), true, now);
-  assert.equal(unauthenticated.code, "GITHUB_AUTH");
+  const unauthenticated = await githubFailure(new Response(null, { status: 401 }), now);
+  assert.equal(unauthenticated.code, "PUBLIC_REPOSITORY_REQUIRED");
 });

@@ -1,10 +1,15 @@
 import { RepositoryError } from "./types";
 
 /** Classify GitHub failures without exposing its raw response or credentials. */
-export async function githubFailure(response: Response, authenticated: boolean, now = Date.now()): Promise<RepositoryError> {
-  if (response.status === 404) return new RepositoryError("Repository or branch not found. For a private repository, connect a GitHub token with Contents read access in Repository access.", "REPOSITORY_NOT_FOUND", true);
-  if (response.status === 401) return new RepositoryError("GitHub rejected your token. Update it in Repository access, then retry. Groq keys are separate.", "GITHUB_AUTH", true);
-  if (response.status !== 403 && response.status !== 429) return new RepositoryError("GitHub could not complete the scan. Please retry.", "GITHUB_UNAVAILABLE", true);
+export async function githubFailure(response: Response, now = Date.now()): Promise<RepositoryError> {
+  if (response.status === 404 || response.status === 401) {
+    await response.body?.cancel().catch(() => {});
+    return new RepositoryError("This repository or branch is not publicly accessible or does not exist. Chalkie supports public repositories only; private repositories cannot be imported.", "PUBLIC_REPOSITORY_REQUIRED");
+  }
+  if (response.status !== 403 && response.status !== 429) {
+    await response.body?.cancel().catch(() => {});
+    return new RepositoryError("GitHub could not complete the public repository download. Please retry.", "GITHUB_UNAVAILABLE", true);
+  }
   const reader = response.body?.getReader();
   let body = "";
   if (reader) {
@@ -21,11 +26,8 @@ export async function githubFailure(response: Response, authenticated: boolean, 
     const retryAt = retry && /^\d+(?:\.\d+)?$/.test(retry) ? now + Number(retry) * 1000 : retry ? Date.parse(retry) : 0;
     const reported = [reset, retryAt].filter(time => Number.isFinite(time) && time > now);
     const nextRetryAt = reported.length ? Math.max(...reported) + 1000 : now + 60000;
-    const message = primary
-      ? authenticated ? "GitHub's API allowance for the connected account is exhausted. Wait for the GitHub reset time, then retry. Your Groq keys are not responsible for this error."
-        : "GitHub's unauthenticated API allowance for this server is exhausted. Connect a GitHub token in Repository access, or wait for the reset time. Adding Groq keys will not increase GitHub's allowance."
-      : "GitHub is temporarily rate-limiting repository requests. Wait for the GitHub retry window before trying again. This is separate from Groq's limits.";
+    const message = "GitHub is temporarily limiting public archive downloads. Wait for the retry window. No GitHub token is needed, and adding Groq keys will not change this limit.";
     return new RepositoryError(message, "GITHUB_RATE_LIMIT", true, nextRetryAt);
   }
-  return new RepositoryError("GitHub denied repository access. Check the token's selected repositories, Contents read permission, and any organization approval or SSO requirements in Repository access.", "GITHUB_ACCESS_DENIED", true);
+  return new RepositoryError("GitHub denied this public archive download. Check that the repository is public and accessible. Private repositories are not supported.", "GITHUB_ACCESS_DENIED");
 }

@@ -3,7 +3,6 @@ import { mkdir, readFile, rename, writeFile, readdir, rm, stat } from "node:fs/p
 import path from "node:path";
 import { cookies } from "next/headers";
 import { RepositoryError, type RepositoryIndex } from "./types";
-import { decryptProviderCredentials } from "../provider-credentials";
 
 const directory = () => path.resolve(/* turbopackIgnore: true */ process.env.CHALKIE_DATA_DIR || path.join(process.cwd(), ".chalkie-data"));
 const ttl = 7 * 24 * 60 * 60 * 1000;
@@ -18,11 +17,6 @@ export async function repositoryOwner() {
     jar.set("chalkie_repository_owner", value, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/", maxAge: 365 * 86400 });
   }
   return createHash("sha256").update(value).digest("hex");
-}
-export async function githubToken() {
-  const value = (await cookies()).get("chalkie_github")?.value;
-  if (!value) return undefined;
-  try { return decryptProviderCredentials(value).githubToken; } catch { return undefined; }
 }
 export async function saveRepositoryIndex(index: RepositoryIndex) {
   const root = directory();

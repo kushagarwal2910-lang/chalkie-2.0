@@ -83,11 +83,11 @@ export function retryCountdown(nextRetryAt: number | undefined, now: number): st
 }
 
 export function providerRetryView(failure: ProviderFailure | null, quota: ProviderQuota | null, now: number) {
-  if (failure?.code.startsWith("GITHUB_") || failure?.code === "REPOSITORY_NOT_FOUND") {
+  if (failure?.code.startsWith("GITHUB_") || failure?.code === "REPOSITORY_NOT_FOUND" || failure?.code === "PUBLIC_REPOSITORY_REQUIRED" || failure?.code === "REPOSITORY_LIMIT") {
     const countdown = retryCountdown(failure.nextRetryAt, now);
     return { canRetry: failure.retryable && !countdown, countdown, needsKeys: false, needsRepositoryAccess: true,
       title: failure.message,
-      detail: countdown ? `GitHub retry window opens in ${countdown}. Groq keys do not change this limit.` : "Open Repository access to check GitHub permissions, then retry. Your board and submitted context are preserved." };
+      detail: countdown ? `Import retry window opens in ${countdown}. Adding API keys will not change this limit.` : "Check the URL or choose another public repository. Your board and submitted context are preserved." };
   }
   const unavailable = quota?.allUnavailable === true;
   const reason = unavailable ? quota?.degradationReason : undefined;
@@ -114,7 +114,6 @@ export type ProviderRetryState<Operation> = {
   requestId: number; status: "idle" | "pending" | "failed"; operation: Operation | null; failure: ProviderFailure | null;
 };
 export type ProviderRetryEvent<Operation> =
-  | { type: "repository-access-updated" }
   | { type: "begin"; requestId: number; operation: Operation }
   | { type: "fail"; requestId: number; failure: ProviderFailure }
   | { type: "complete"; requestId: number }
@@ -122,7 +121,6 @@ export type ProviderRetryEvent<Operation> =
 
 /** A late response cannot overwrite a newer request or its retry payload. */
 export function providerRetryReducer<Operation>(state: ProviderRetryState<Operation>, event: ProviderRetryEvent<Operation>): ProviderRetryState<Operation> {
-  if (event.type === "repository-access-updated") return state.status === "failed" && state.failure?.code.startsWith("GITHUB_") ? { ...state, failure: { ...state.failure, nextRetryAt: undefined } } : state;
   if (event.type === "begin") return event.requestId > state.requestId ? { requestId: event.requestId, status: "pending", operation: event.operation, failure: null } : state;
   if (event.type === "clear") return event.requestId >= state.requestId ? { requestId: event.requestId, status: "idle", operation: null, failure: null } : state;
   if (event.requestId !== state.requestId || state.status !== "pending") return state;

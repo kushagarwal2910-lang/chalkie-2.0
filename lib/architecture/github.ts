@@ -1,95 +1,99 @@
 import { randomUUID } from "node:crypto";
-import { classifyBlueprint, parseBlueprint } from "./blueprints.ts";
-import { RepositoryError, type RepositoryIndex } from "./types.ts";
+import { RepositoryError, type RepositoryIndex } from "./types";
 import { githubFailure } from "./github-errors";
+import { ARCHIVE_BYTE_LIMIT, readPublicArchive, type PublicBlueprintSnapshot } from "./github-archive";
+import { PublicSnapshotCache } from "./public-snapshot-cache";
 
 export function parseRepositoryUrl(input: string) {
-  let url: URL;
-  try { url = new URL(input.trim()); } catch { throw new RepositoryError("Paste a GitHub repository URL, such as https://github.com/owner/repository.", "INVALID_REPOSITORY_URL"); }
-  const parts = url.pathname.replace(/\/+$/, "").split("/").filter(Boolean).map(decodeURIComponent);
-  if (url.protocol !== "https:" || url.hostname !== "github.com" || url.port || url.username || url.password || parts.length < 2 || parts.length > 2 && (parts[2] !== "tree" || parts.length < 4)) throw new RepositoryError("Use a github.com repository URL or a /tree/branch URL.", "INVALID_REPOSITORY_URL");
+  const invalid = () => new RepositoryError("Use a public github.com repository URL or a /tree/branch URL.", "INVALID_REPOSITORY_URL");
+  let url: URL, parts: string[];
+  try {
+    url = new URL(input.trim());
+    parts = url.pathname.replace(/\/+$/, "").split("/").filter(Boolean).map(decodeURIComponent);
+  } catch { throw invalid(); }
+  if (url.protocol !== "https:" || url.hostname !== "github.com" || url.port || url.username || url.password || parts.length < 2 || parts.length > 2 && (parts[2] !== "tree" || parts.length < 4)) throw invalid();
   const [owner, rawName] = parts;
   const name = rawName.replace(/\.git$/, "");
-  if (![owner, name].every(value => /^[\w.-]+$/.test(value) && !/^\.+$/.test(value))) throw new RepositoryError("The repository URL is invalid.", "INVALID_REPOSITORY_URL");
-  return { owner, name, ref: parts.slice(3).join("/") || undefined, url: "https://github.com/" + owner + "/" + name };
+  if (![owner, name].every(value => /^[\w.-]+$/.test(value) && !/^\.+$/.test(value))) throw invalid();
+  const ref = parts.slice(3).join("/") || undefined;
+  if (ref && (ref.length > 250 || /[\x00-\x20\x7f~^:?*\[\\]/.test(ref) || ref.includes("..") || ref.split("/").some(part => !part || part === "."))) throw invalid();
+  return { owner, name, ref, url: "https://github.com/" + owner + "/" + name };
 }
 
-type TreeEntry = { path: string; sha: string; type: string; mode: string; size?: number };
-type Tree = { tree: TreeEntry[]; truncated: boolean };
-type Options = { token?: string; signal?: AbortSignal; ownerKey: string; allowEmptyEvidence?: boolean; onStatus?: (message: string) => void; fetcher?: typeof fetch };
+type Options = { signal?: AbortSignal; ownerKey: string; allowEmptyEvidence?: boolean; onStatus?: (message: string) => void; fetcher?: typeof fetch; cache?: PublicSnapshotCache };
+const publicCache = new PublicSnapshotCache();
+let activeImports = 0;
 
-export async function ingestRepository(input: string, options: Options): Promise<RepositoryIndex> {
-  const repo = parseRepositoryUrl(input);
-  const fetcher = options.fetcher ?? fetch;
-  let calls = 0;
-  const api = async <T>(path: string): Promise<T> => {
-    if (++calls > 180) throw new RepositoryError("This repository exceeded the scan request limit. Narrow the repository or try a smaller architectural snapshot.", "REPOSITORY_LIMIT");
-    options.signal?.throwIfAborted();
-    const response = await fetcher("https://api.github.com/repos/" + encodeURIComponent(repo.owner) + "/" + encodeURIComponent(repo.name) + path, {
-      headers: { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", ...(options.token ? { Authorization: "Bearer " + options.token } : {}) },
-      signal: options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(25000)]) : AbortSignal.timeout(25000),
-      redirect: "error", cache: "no-store",
-    });
-    if (!response.ok) throw await githubFailure(response, Boolean(options.token));
-    const reader = response.body?.getReader();
-    if (!reader) throw new RepositoryError("GitHub returned an empty response.");
-    const buffers: Uint8Array[] = []; let bytes = 0;
+async function readArchiveResponse(response: Response, signal: AbortSignal) {
+  const declaredSize = Number(response.headers.get("content-length"));
+  if (declaredSize > ARCHIVE_BYTE_LIMIT) {
+    await response.body?.cancel();
+    throw new RepositoryError("The repository snapshot exceeds the 32 MB compressed download limit.", "REPOSITORY_LIMIT");
+  }
+  const reader = response.body?.getReader();
+  if (!reader) throw new RepositoryError("GitHub returned an empty archive. Please retry.", "GITHUB_INVALID_ARCHIVE", true);
+  const buffers: Uint8Array[] = [];
+  let size = 0;
+  const abort = () => { void reader.cancel(signal.reason).catch(() => {}); };
+  signal.addEventListener("abort", abort, { once: true });
+  try {
+    signal.throwIfAborted();
     while (true) {
-      const { value, done } = await reader.read(); if (done) break;
-      bytes += value.byteLength;
-      if (bytes > 12_000_000) { await reader.cancel(); throw new RepositoryError("The repository listing exceeds the scan size limit.", "REPOSITORY_LIMIT"); }
+      const { value, done } = await reader.read();
+      signal.throwIfAborted();
+      if (done) break;
+      size += value.byteLength;
+      if (size > ARCHIVE_BYTE_LIMIT) throw new RepositoryError("The repository snapshot exceeds the 32 MB compressed download limit.", "REPOSITORY_LIMIT");
       buffers.push(value);
     }
-    return JSON.parse(Buffer.concat(buffers).toString("utf8")) as T;
-  };
-  options.onStatus?.("Discovering blueprint files on GitHub");
-  const metadata = await api<{ default_branch: string }>("");
-  const commit = await api<{ sha: string; commit: { tree: { sha: string } } }>("/commits/" + encodeURIComponent(repo.ref ?? metadata.default_branch));
-  if (!/^[a-f0-9]{40}$/.test(commit.sha)) throw new RepositoryError("GitHub did not return a valid repository revision.");
-  const root = await api<Tree>("/git/trees/" + commit.commit.tree.sha + "?recursive=1");
-  let entries = root.tree;
-  if (root.truncated) {
-    entries = [];
-    const queue = [{ sha: commit.commit.tree.sha, prefix: "" }];
-    while (queue.length) {
-      const item = queue.shift()!;
-      const subtree = await api<Tree>("/git/trees/" + item.sha);
-      if (subtree.truncated) throw new RepositoryError("GitHub could not provide a complete directory listing.", "REPOSITORY_LIMIT");
-      for (const entry of subtree.tree) {
-        const full = { ...entry, path: item.prefix + entry.path };
-        if (full.type === "tree" && !/(^|\/)(node_modules|vendor|dist|\.git|\.terraform)(\/|$)/.test(full.path)) queue.push({ sha: full.sha, prefix: full.path + "/" });
-        else entries.push(full);
-      }
-      if (entries.length > 100000) throw new RepositoryError("Repository exceeds the supported file count.", "REPOSITORY_LIMIT");
+    return Buffer.concat(buffers, size);
+  } finally {
+    signal.removeEventListener("abort", abort);
+    await reader.cancel().catch(() => {});
+  }
+}
+
+/** Public archive import: no REST requests, credentials, model calls, or source execution. */
+export async function ingestRepository(input: string, options: Options): Promise<RepositoryIndex> {
+  const repo = parseRepositoryUrl(input);
+  const signal = AbortSignal.any([AbortSignal.timeout(90000), ...(options.signal ? [options.signal] : [])]);
+  signal.throwIfAborted();
+  if (activeImports >= 2) throw new RepositoryError("Chalkie is importing other repositories. Please retry shortly.", "GITHUB_IMPORT_BUSY", true, Date.now() + 5000);
+  activeImports++;
+  // Injected fetchers use isolated caches unless a test explicitly supplies one.
+  const cache = options.cache ?? (options.fetcher ? new PublicSnapshotCache() : publicCache);
+  const url = "https://codeload.github.com/" + encodeURIComponent(repo.owner) + "/" + encodeURIComponent(repo.name) + "/zip/" + encodeURIComponent(repo.ref ?? "HEAD");
+  const cached = cache.get(url);
+  try {
+    options.onStatus?.(cached ? "Checking the public repository for changes" : "Importing public GitHub snapshot · no GitHub token needed");
+    const response = await (options.fetcher ?? fetch)(url, {
+      headers: { Accept: "application/zip", ...(cached ? { "If-None-Match": cached.etag } : {}) },
+      signal, credentials: "omit", redirect: "error", cache: "no-store",
+    });
+    let snapshot: PublicBlueprintSnapshot;
+    if (response.status === 304 && cached) {
+      signal.throwIfAborted();
+      snapshot = cached.snapshot;
+      options.onStatus?.("Reusing the unchanged public repository snapshot");
+      cache.set(url, cached.etag, snapshot);
+    } else {
+      if (!response.ok) { cache.delete(url); throw await githubFailure(response); }
+      const archive = await readArchiveResponse(response, signal);
+      snapshot = await readPublicArchive(archive, repo, signal, options.onStatus, cached?.snapshot);
+      cache.set(url, response.headers.get("etag") ?? "", snapshot);
     }
-  }
-  const candidates = entries.filter(e => e.type === "blob" && e.mode !== "120000" && classifyBlueprint(e.path));
-  const priority = (e: TreeEntry) => ({ documentation: 0, compose: 1, terraform: 2, dependencies: 3, docker: 4, cloudformation: 5, kubernetes: 6, yaml: 7 }[classifyBlueprint(e.path)!]);
-  candidates.sort((a, b) => priority(a) - priority(b) || a.path.split("/").length - b.path.split("/").length || a.path.localeCompare(b.path));
-  const index: RepositoryIndex = { version: 1, id: randomUUID(), ownerKey: options.ownerKey, repository: { ...repo, commit: commit.sha }, createdAt: new Date().toISOString(), discoveredFiles: candidates.length, files: [], evidence: [], warnings: [] };
-  if (candidates.length > 120) index.warnings.push("Found " + candidates.length + " candidate files; scanned the first 120 by blueprint priority. This overview is partial.");
-  let totalBytes = 0;
-  for (const [i, file] of candidates.slice(0, 120).entries()) {
+    const index: RepositoryIndex = { ...structuredClone(snapshot), version: 1, id: randomUUID(), ownerKey: options.ownerKey, createdAt: new Date().toISOString() };
+    if (!index.evidence.length) {
+      if (!options.allowEmptyEvidence) throw new RepositoryError("No readable architecture blueprints were found. Add supporting documentation, or use a public repository with container files, infrastructure declarations, dependency manifests, or architecture docs. Application source code is excluded.", "NO_BLUEPRINTS");
+      index.warnings.push("No readable repository blueprints were found. This explanation relies on your supporting documentation; repository architecture is unverified.");
+    }
+    return index;
+  } catch (error) {
     options.signal?.throwIfAborted();
-    if (!file.size || file.size > 128000) { index.warnings.push(file.path + ": skipped empty or oversized file (128 KB per-file limit)."); continue; }
-    if (totalBytes + file.size > 1800000 || index.evidence.length > 1500) { index.warnings.push("Reached the evidence size limit. Some blueprints were not indexed."); break; }
-    options.onStatus?.("Reading blueprint " + (i + 1) + "/" + Math.min(120, candidates.length) + " · " + file.path);
-    const blob = await api<{ encoding: string; content: string; size: number }>("/git/blobs/" + file.sha);
-    if (blob.encoding !== "base64" || blob.size > 128000 || blob.content.length > 180000) { index.warnings.push(file.path + ": unsupported or oversized content."); continue; }
-    const raw = Buffer.from(blob.content, "base64").toString("utf8");
-    totalBytes += Buffer.byteLength(raw);
-    const parsed = parseBlueprint(file.path, raw);
-    index.warnings.push(...parsed.warnings);
-    if (!parsed.evidence.length) continue;
-    index.files.push({ path: file.path, kind: parsed.kind, bytes: blob.size });
-    for (const item of parsed.evidence) index.evidence.push({ ...item, id: "e" + (index.evidence.length + 1) });
-  }
-  index.warnings = index.warnings.slice(0, 100);
-  if (!index.evidence.length) {
-    if (!options.allowEmptyEvidence) throw new RepositoryError("No readable architecture blueprints were found. Add supporting documentation, or use a repository with container files, infrastructure declarations, dependency manifests, or architecture docs. Application source code is excluded.", "NO_BLUEPRINTS");
-    index.warnings.push("No readable repository blueprints were found. This explanation relies on your supporting documentation; repository architecture is unverified.");
-  }
-  return index;
+    if (signal.aborted) throw new RepositoryError("The public repository download took too long. Retry or use a smaller repository.", "GITHUB_DOWNLOAD_TIMEOUT", true);
+    if (error instanceof RepositoryError) throw error;
+    throw new RepositoryError("Chalkie could not download the public repository snapshot. Check the repository URL and connection, then retry.", "GITHUB_UNAVAILABLE", true);
+  } finally { activeImports--; }
 }
 
 export function retrieveEvidence(index: RepositoryIndex, question: string, limit = 24) {

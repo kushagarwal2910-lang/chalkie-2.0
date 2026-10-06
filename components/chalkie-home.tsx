@@ -180,7 +180,7 @@ export function ChalkieHome() {
         <section aria-labelledby="welcome-heading">
           <p className="mb-3 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[.16em] text-[#a9c9b0]"><span className="h-1.5 w-1.5 rounded-full bg-[#a9c9b0]" />A shared understanding of your system</p>
           <h1 id="welcome-heading" className="max-w-3xl text-balance text-[34px] font-medium leading-[1.15] tracking-[-.045em] sm:text-[44px] lg:text-[48px]">Your architecture, explained.</h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-[#a9adb6] sm:text-[15px]">Paste a repository. Follow the visual walkthrough. Ask the questions that help your team move forward.</p>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-[#a9adb6] sm:text-[15px]">Paste a public repository. Follow the visual walkthrough. Ask the questions that help your team move forward.</p>
 
           <form onSubmit={submit} className="mt-7 rounded-[20px] border border-[#3f414b] bg-[#202327] p-4 sm:mt-8 sm:p-5 lg:flex lg:items-center lg:gap-8">
             <div className="mb-3 flex items-center gap-3 lg:mb-0 lg:w-[245px] lg:shrink-0">
@@ -195,7 +195,7 @@ export function ChalkieHome() {
           <div className="repository-composer-tools mt-3"><label>Explain for <select aria-label="Explanation audience" value={audience} onChange={e => setAudience(e.target.value)}><option value="developer">Developers</option><option value="cross-team">Product & engineering</option><option value="leadership">Leadership & investors</option></select></label><RepositoryAccess /></div>
           <RepositoryContext value={repositoryContext} onChange={setRepositoryContext} onBusyChange={setReadingDocuments} />
           <p className="mt-3 text-xs text-[#a9adb6]">Reads container files, infrastructure declarations, dependencies, and docs. Application source code is excluded.</p>
-          <p className="mt-3 text-xs leading-5 text-[#9297a1]">A source-backed architecture diagram and an explanation you can hear.</p>
+          <p className="mt-3 text-xs leading-5 text-[#9297a1]">Public repositories only · No GitHub token needed. Explanations use your existing Groq allowance.</p>
         </section>
 
         <section className="mt-11 sm:mt-14" aria-labelledby="notebooks-heading">

@@ -2,19 +2,22 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { newestProviderQuota, parseProviderFailure, providerKeysetIdentity, providerRetryReducer, providerRetryView, quotaMatchesConfiguration, retryCountdown, sanitizeProviderQuota } from '../lib/provider-retry.ts';
 
-test('GitHub deadlines stay independent of ready Groq keys and connecting GitHub preserves the pending context', () => {
+test('GitHub download deadlines stay independent of ready Groq keys', () => {
   const timestamp = 1800000000000;
-  const failure = { code: 'GITHUB_RATE_LIMIT', message: 'Connect GitHub or wait', retryable: true, nextRetryAt: timestamp + 60000 };
+  const failure = { code: 'GITHUB_RATE_LIMIT', message: 'Wait before retrying this public archive download', retryable: true, nextRetryAt: timestamp + 60000 };
   const groq = { source: 'byok', allUnavailable: false, keys: [] };
   const view = providerRetryView(failure, groq, timestamp);
   assert.equal(view.canRetry, false); assert.equal(view.needsKeys, false); assert.equal(view.needsRepositoryAccess, true);
-  assert.match(view.detail, /GitHub retry window/);
+  assert.match(view.detail, /Import retry window/);
   assert.equal(providerRetryView(failure, groq, timestamp + 60000).canRetry, true);
-  const operation = { kind: 'lesson', question: 'https://github.com/a/b', context: { instructions: 'Explain ownership', documents: [{ name: 'teams.md', text: 'Platform owns API' }] } };
-  const state = { requestId: 1, status: 'failed', operation, failure };
-  const updated = providerRetryReducer(state, { type: 'repository-access-updated' });
-  assert.equal(updated.operation, operation); assert.equal(updated.failure.nextRetryAt, undefined);
-  assert.equal(providerRetryView(updated.failure, groq, timestamp).canRetry, true);
+});
+
+test('unsupported private repositories do not ask users for provider or GitHub keys', () => {
+  const failure = { code: 'PUBLIC_REPOSITORY_REQUIRED', message: 'Private repositories cannot be imported.', retryable: false };
+  const view = providerRetryView(failure, { source: 'none', allUnavailable: true, keys: [], degradationReason: 'no_keys' }, Date.now());
+  assert.equal(view.canRetry, false); assert.equal(view.needsKeys, false);
+  assert.equal(view.title, failure.message); assert.match(view.detail, /public repository/);
+  assert.doesNotMatch(view.detail, /Open Manage keys|check GitHub permissions/);
 });
 import { readProviderEventStream } from '../lib/provider-event-stream.ts';
 
