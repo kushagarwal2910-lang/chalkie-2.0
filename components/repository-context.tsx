@@ -4,13 +4,14 @@ import { useId, useRef, useState } from "react";
 import { FileText, Paperclip, X } from "lucide-react";
 import { MAX_DOCUMENTS, MAX_DOCUMENT_CHARS, repositoryInputSchema, type RepositoryInput } from "@/lib/repository-input";
 
-export function RepositoryContext({ value, onChange, disabled = false, onBusyChange }: {
-  value: RepositoryInput; onChange: (value: RepositoryInput) => void; disabled?: boolean; onBusyChange?: (busy: boolean) => void;
+export function RepositoryContext({ value, onChange, disabled = false, onBusyChange, defaultOpen = false }: {
+  value: RepositoryInput; onChange: (value: RepositoryInput) => void; disabled?: boolean; onBusyChange?: (busy: boolean) => void; defaultOpen?: boolean;
 }) {
   const id = useId();
   const fileRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [reading, setReading] = useState(false);
+  const [expanded, setExpanded] = useState(defaultOpen);
   async function attach(files: File[]) {
     setError(""); setReading(true); onBusyChange?.(true);
     try {
@@ -30,7 +31,7 @@ export function RepositoryContext({ value, onChange, disabled = false, onBusyCha
     } catch (err) { setError(err instanceof Error ? err.message : "Could not read these documents."); }
     finally { setReading(false); onBusyChange?.(false); if (fileRef.current) fileRef.current.value = ""; }
   }
-  return <details className="repository-context">
+  return <details className="repository-context" open={expanded} onToggle={event => setExpanded(event.currentTarget.open)}>
     <summary><Paperclip size={14} /> Add instructions & documentation <span>{value.documents.length ? `${value.documents.length} attached` : value.instructions || value.notes ? "Context added" : "Optional"}</span></summary>
     <fieldset disabled={disabled || reading}>
       <label htmlFor={id + "-instructions"}>What should Chalkie focus on?</label>

@@ -57,7 +57,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { formatNarrationForSpeech } from "@/lib/speech-formatter";
 import { computeTargetPositions } from "@/lib/target-matcher";
 import { getProgressiveVisibleObjects } from "@/lib/progressive-scene";
-import { CanvasPlaybackGate, playDeviceNarration, playRecordedNarration, type CanvasPlaybackState } from "@/lib/playback-sync";
+import { CanvasPlaybackGate, playDeviceNarrationChunks, playRecordedNarration, type CanvasPlaybackState } from "@/lib/playback-sync";
 import {
   getBestAvailableVoice,
   PREFERRED_VOICE_KEY,
@@ -117,6 +117,13 @@ export function ChalkieStudio() {
   const [promptMode, setPromptMode] = useState<"auto" | "doubt" | "new">("auto");
   const [repositoryContext, setRepositoryContext] = useState(emptyRepositoryInput);
   const [readingDocuments, setReadingDocuments] = useState(false);
+  const [promptOptionsOpen, setPromptOptionsOpen] = useState(false);
+  const promptOptionsRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = promptOptionsRef.current;
+    if (promptOptionsOpen && !dialog?.open) dialog?.showModal();
+    else if (!promptOptionsOpen && dialog?.open) dialog.close();
+  }, [promptOptionsOpen]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   // null shows the completed board; -1 stages the first scene without revealing it.
@@ -668,15 +675,16 @@ export function ChalkieStudio() {
         return;
       }
       if ("speechSynthesis" in window) {
-        const utterance = new SpeechSynthesisUtterance(spokenNarration);
         const voices = window.speechSynthesis.getVoices();
         const preferredUri = window.localStorage.getItem(PREFERRED_VOICE_KEY);
-        utterance.voice = getBestAvailableVoice(voices, preferredUri);
+        const voice = getBestAvailableVoice(voices, preferredUri);
         const storedRate = window.localStorage.getItem(SPEECH_RATE_KEY);
         const rate = storedRate ? parseFloat(storedRate) : DEFAULT_SPEECH_RATE;
-        utterance.rate = Number.isFinite(rate) && rate >= 0.7 && rate <= 1.3 ? rate : DEFAULT_SPEECH_RATE;
-        utterance.pitch = DEFAULT_SPEECH_PITCH;
-        playDeviceNarration(window.speechSynthesis, utterance, callbacks);
+        playDeviceNarrationChunks(window.speechSynthesis, spokenNarration, {
+          voice, lang: voice?.lang ?? "en-US",
+          rate: Number.isFinite(rate) && rate >= 0.7 && rate <= 1.3 ? rate : DEFAULT_SPEECH_RATE,
+          pitch: DEFAULT_SPEECH_PITCH,
+        }, callbacks);
       } else {
         beginVisualTeaching();
         stepTimerRef.current = setTimeout(advance, segment.durationMs || 4500);
@@ -982,15 +990,13 @@ export function ChalkieStudio() {
                 {isFollowUpGenerating && <div className="studio-followup" role="status"><Waves size={18} className="shrink-0 animate-pulse text-[#c4b5fd]" /><span className="min-w-0 truncate text-sm">{generationStage}</span></div>}
               </div>
               <div className="studio-composer">
-                <div className="repository-composer-tools"><label>Explain for <select aria-label="Explanation audience" value={audience} onChange={e => setAudience(e.target.value as typeof audience)} disabled={isBusy}><option value="developer">Developers</option><option value="cross-team">Product & engineering</option><option value="leadership">Leadership & investors</option></select></label><RepositoryAccess /></div>
-                {hasLesson && <div className="mb-2 flex flex-wrap gap-1" role="group" aria-label="Question mode">{(["auto", "doubt", "new"] as const).map((mode) => <button type="button" key={mode} onClick={() => setPromptMode(mode)} aria-pressed={promptMode === mode} className="studio-mode">{mode === "auto" ? <Sparkles size={12} /> : mode === "doubt" ? <MessageSquare size={12} /> : <Plus size={12} />}{mode === "auto" ? "Auto" : mode === "doubt" ? "Follow-up" : "New repository"}</button>)}</div>}
-                {(!hasLesson || promptMode === "new" || /^https:\/\/github\.com\//i.test(prompt.trim())) && <RepositoryContext value={repositoryContext} onChange={setRepositoryContext} disabled={isBusy} onBusyChange={setReadingDocuments} />}
                 <form onSubmit={submitQuestion} className="studio-prompt-form">
+                  <button type="button" onClick={() => setPromptOptionsOpen(true)} aria-label="Question settings and documentation" aria-haspopup="dialog" title="Audience, question mode & documentation" className="studio-icon-button studio-prompt-options-trigger"><SlidersHorizontal size={18} />{(repositoryContext.instructions || repositoryContext.notes || repositoryContext.documents.length > 0) && <span className="studio-context-dot" aria-label="Context added" />}</button>
                   <textarea maxLength={1000} value={prompt} onChange={(event) => setPrompt(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} rows={1} aria-label="Repository URL or follow-up question" placeholder={promptMode === "new" || !hasLesson ? "https://github.com/your-team/repository" : "Ask about this architecture…"} />
                   <button type="button" onClick={toggleRecording} aria-label={isRecording ? "Stop recording" : "Ask with your voice"} title={isRecording ? "Stop recording" : "Ask with your voice"} className={`studio-icon-button ${isRecording ? "voice-ring bg-[#493134] text-[#f0aca9]" : "text-[#c4b5fd]"}`}><Mic size={18} /></button>
                   <button type="submit" aria-label="Send question" title="Send question" className="studio-send" disabled={!canSubmitPrompt || readingDocuments}>{isBusy ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#292333]/30 border-t-[#292333]" /> : <Send size={17} />}</button>
                 </form>
-                <p className="studio-composer-hint" role="status">{isRecording ? "Listening — pause when you finish" : voiceState === "transcribing" ? "Turning your voice into a question…" : voiceState === "thinking" ? generationStage : voiceState === "speaking" ? "Chalkie is explaining · ask a question to interrupt" : "Blueprints and documentation · source code stays out of the index"}</p>
+                <p className={isRecording || voiceState === "transcribing" || isBusy ? "studio-composer-hint" : "sr-only"} role="status">{isRecording ? "Listening — pause when you finish" : voiceState === "transcribing" ? "Turning your voice into a question…" : voiceState === "thinking" ? generationStage : voiceState === "speaking" ? "Chalkie is explaining · ask a question to interrupt" : "Blueprints and documentation · source code stays out of the index"}</p>
               </div>
             </section>
           }
@@ -999,7 +1005,7 @@ export function ChalkieStudio() {
               <div className="studio-panel-heading"><h2><BookOpen size={17} /> Lesson guide</h2><button type="button" onClick={toggleRightPanel} className="studio-icon-button studio-desktop-only" aria-label="Collapse Lesson Guide sidebar"><PanelRightClose size={17} /></button></div>
               <div className="studio-panel-scroll px-4">
                 <div className="studio-voice-card">
-                  <div className="flex flex-wrap items-center justify-between gap-2"><span className="flex items-center gap-2 text-xs font-medium text-[#d4c8f2]"><Headphones size={15} /> Listen & learn</span><button type="button" onClick={() => setVoiceSettingsOpen(true)} className="studio-icon-button h-8 min-h-8 w-8 text-[#d4c8f2]" aria-label="Voice settings" title="Voice settings"><SlidersHorizontal size={16} /></button></div>
+                  <div className="flex flex-wrap items-center justify-between gap-2"><span className="flex items-center gap-2 text-xs font-medium text-[#d4c8f2]"><Headphones size={15} /> Listen & learn</span><button type="button" onClick={() => { stopPlayback(false); setVoiceSettingsOpen(true); }} className="studio-icon-button h-8 min-h-8 w-8 text-[#d4c8f2]" aria-label="Voice settings" title="Voice settings"><SlidersHorizontal size={16} /></button></div>
                   <h3 className="mt-4 break-words text-lg font-medium leading-6 tracking-[-.02em]">{hasLesson ? lesson.title : "A lesson, at your pace"}</h3>
                   <p className="mt-2 line-clamp-3 text-xs leading-5 text-[#b8b3c3]">{lastAnswer || (hasLesson ? lesson.summary : "Follow along as your ideas take shape on the diagram.")}</p>
                   <div className="mt-5 flex items-center gap-3">
@@ -1025,6 +1031,15 @@ export function ChalkieStudio() {
 
       <dialog ref={overviewRef} onCancel={() => setOverviewOpen(false)} onClose={() => setOverviewOpen(false)} aria-labelledby="overview-title" className="studio-overview">
         <div className="flex h-full min-h-0 flex-col"><div className="flex min-h-16 shrink-0 items-center justify-between gap-3 border-b border-[#363a40] px-4 sm:px-5"><div className="min-w-0"><h2 id="overview-title" className="text-sm font-medium">The complete picture</h2><p className="mt-1 text-xs text-[#a9adb6]">Explore your complete architecture diagram.</p></div><button onClick={() => setOverviewOpen(false)} className="studio-icon-button" aria-label="Close overview"><X size={18} /></button></div><div className="relative m-2 min-h-0 flex-1 overflow-hidden rounded-xl sm:m-4">{overviewOpen && <ChalkCanvas lesson={lesson} activeSegment={null} activeStep={lesson.segments.length - 1} isPresenting={false} />}</div></div>
+      </dialog>
+      <dialog ref={promptOptionsRef} onCancel={event => { if (event.target === event.currentTarget) setPromptOptionsOpen(false); }} onClose={event => { if (event.target === event.currentTarget) setPromptOptionsOpen(false); }} aria-labelledby="prompt-options-title" className="studio-prompt-options">
+        <header><div><h2 id="prompt-options-title">Question settings</h2><p>Choose your audience, add context, or start another repository.</p></div><button type="button" onClick={() => setPromptOptionsOpen(false)} className="studio-icon-button" aria-label="Close question settings"><X size={18} /></button></header>
+        <div className="studio-prompt-options-body">
+          <div className="repository-composer-tools"><label>Explain for <select aria-label="Explanation audience" value={audience} onChange={e => setAudience(e.target.value as typeof audience)} disabled={isBusy}><option value="developer">Developers</option><option value="cross-team">Product & engineering</option><option value="leadership">Leadership & investors</option></select></label><RepositoryAccess /></div>
+          {hasLesson && <div className="studio-question-modes" role="group" aria-label="Question mode">{(["auto", "doubt", "new"] as const).map((mode) => <button type="button" key={mode} onClick={() => setPromptMode(mode)} aria-pressed={promptMode === mode} className="studio-mode">{mode === "auto" ? <Sparkles size={12} /> : mode === "doubt" ? <MessageSquare size={12} /> : <Plus size={12} />}{mode === "auto" ? "Auto" : mode === "doubt" ? "Follow-up" : "New repository"}</button>)}</div>}
+          {(!hasLesson || promptMode === "new" || /^https:\/\/github\.com\//i.test(prompt.trim())) ? <RepositoryContext defaultOpen value={repositoryContext} onChange={setRepositoryContext} disabled={isBusy} onBusyChange={setReadingDocuments} /> : <p className="studio-prompt-options-note">Follow-ups use the repository and documentation already indexed. Choose New repository to attach new context.</p>}
+        </div>
+        <footer><button type="button" className="studio-primary px-5" onClick={() => setPromptOptionsOpen(false)}>Done</button></footer>
       </dialog>
       <VoiceSettingsDialog open={voiceSettingsOpen} onOpenChange={setVoiceSettingsOpen} />
       {toast && <div role="status" className="studio-toast"><Sparkles size={16} className="shrink-0 text-[#c4b5fd]" /><span className="min-w-0 flex-1 break-words">{toast}</span><button onClick={() => setToast(null)} className="studio-icon-button h-8 min-h-8 w-8" aria-label="Dismiss notification"><X size={15} /></button></div>}

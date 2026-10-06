@@ -1,3 +1,5 @@
+import { splitSpeechForPlayback } from "./speech-formatter";
+
 export type CanvasPlaybackState =
   | { status: "loading"; request: number }
   | { status: "ready"; request: number }
@@ -106,6 +108,51 @@ export function playDeviceNarration(
   signal.addEventListener("abort", abort, { once: true });
   try { speech.speak(utterance); }
   catch { cleanup(); onError(); }
+}
+
+/** Speak short sentences/clauses while preserving full-narration pointer offsets. */
+export function playDeviceNarrationChunks(
+  speech: SpeechSynthesis,
+  text: string,
+  settings: Pick<SpeechSynthesisUtterance, "voice" | "lang" | "rate" | "pitch">,
+  options: NarrationCallbacks,
+  createUtterance = (value: string) => new SpeechSynthesisUtterance(value),
+) {
+  if (options.signal.aborted) return;
+  const chunks = splitSpeechForPlayback(text);
+  let index = 0;
+  let started = false;
+  let finished = false;
+  let gap: ReturnType<typeof setTimeout> | undefined;
+  const cleanup = () => {
+    finished = true;
+    clearTimeout(gap);
+    options.signal.removeEventListener("abort", cleanup);
+  };
+  options.signal.addEventListener("abort", cleanup, { once: true });
+  const speakNext = () => {
+    if (finished || options.signal.aborted) return;
+    const chunk = chunks[index];
+    if (!chunk) { cleanup(); options.onEnd(); return; }
+    const utterance = createUtterance(chunk.text);
+    Object.assign(utterance, settings);
+    const previousTarget = targetAtCharacter(options.cues, chunk.start);
+    const cues = options.cues.filter(cue => cue.charIndex >= chunk.start && cue.charIndex < chunk.start + chunk.text.length)
+      .map(cue => ({ ...cue, charIndex: cue.charIndex - chunk.start }));
+    if (previousTarget && cues[0]?.charIndex !== 0) cues.unshift({ targetId: previousTarget, charIndex: 0 });
+    playDeviceNarration(speech, utterance, {
+      ...options, cues,
+      onStart: () => { if (!started) { started = true; options.onStart(); } },
+      onEnd: () => {
+        if (finished || options.signal.aborted) return;
+        index++;
+        if (index === chunks.length) { cleanup(); options.onEnd(); }
+        else gap = setTimeout(speakNext, /[.!?][”"']?$/.test(chunk.text) ? 160 : 70);
+      },
+      onError: () => { cleanup(); options.onError(); },
+    });
+  };
+  speakNext();
 }
 
 /** Use media time so buffering never makes the cursor run ahead of the audio. */

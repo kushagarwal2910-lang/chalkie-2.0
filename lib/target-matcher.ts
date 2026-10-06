@@ -1,4 +1,5 @@
 import type { VisualObject } from "./lesson-schema";
+import { formatNarrationForSpeech } from "./speech-formatter";
 
 export interface TargetPosition {
   charIndex: number;
@@ -204,10 +205,12 @@ export function computeTargetPositions(
   const uniqueCandidates: CandidateTerm[] = [];
   const seenTermTarget = new Set<string>();
   for (const c of candidates) {
-    const key = `${c.term}|${c.targetId}`;
+    // Match the same expanded engineering terms that the listener hears.
+    const spokenTerm = formatNarrationForSpeech(c.term).replace(/[.!?]$/, "").toLowerCase();
+    const key = `${spokenTerm}|${c.targetId}`;
     if (!seenTermTarget.has(key)) {
       seenTermTarget.add(key);
-      uniqueCandidates.push(c);
+      uniqueCandidates.push({ ...c, term: spokenTerm });
     }
   }
 

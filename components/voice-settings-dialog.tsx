@@ -12,6 +12,7 @@ import {
   SPEECH_RATE_KEY,
 } from "@/lib/voice-selection";
 import { formatNarrationForSpeech } from "@/lib/speech-formatter";
+import { playDeviceNarrationChunks } from "@/lib/playback-sync";
 import { Check, Play, Square, Volume2, Sparkles, X } from "lucide-react";
 
 interface VoiceSettingsDialogProps {
@@ -30,6 +31,8 @@ export function VoiceSettingsDialog({
   const [speechRate, setSpeechRate] = useState<number>(DEFAULT_SPEECH_RATE);
   const [isPlayingSample, setIsPlayingSample] = useState(false);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+  const sampleAbortRef = useRef<AbortController | null>(null);
+  useEffect(() => () => sampleAbortRef.current?.abort(), []);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -77,33 +80,32 @@ export function VoiceSettingsDialog({
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
     if (isPlayingSample) {
-      window.speechSynthesis.cancel();
+      sampleAbortRef.current?.abort();
       setIsPlayingSample(false);
       return;
     }
 
+    sampleAbortRef.current?.abort();
     window.speechSynthesis.cancel();
+    const controller = new AbortController();
+    sampleAbortRef.current = controller;
     const sampleText = formatNarrationForSpeech(
-      "Welcome to Chalkie! I explain mechanisms, processes, and systems clearly on the chalkboard with natural pacing."
+      "The Next.js API receives an HTTP request. It checks security, reads JSON from PostgreSQL, and returns the result. GitHub runs the CI/CD workflow."
     );
-
-    const utterance = new SpeechSynthesisUtterance(sampleText);
-    const matchedVoice = voices.find((v) => v.voiceURI === selectedUri || v.name === selectedUri);
-    if (matchedVoice) utterance.voice = matchedVoice;
-    utterance.rate = speechRate;
-    utterance.pitch = DEFAULT_SPEECH_PITCH;
-
-    utterance.onend = () => setIsPlayingSample(false);
-    utterance.onerror = () => setIsPlayingSample(false);
-
+    const voice = getBestAvailableVoice(voices, selectedUri);
     setIsPlayingSample(true);
-    window.speechSynthesis.speak(utterance);
+    playDeviceNarrationChunks(window.speechSynthesis, sampleText, {
+      voice, lang: voice?.lang ?? "en-US", rate: speechRate, pitch: DEFAULT_SPEECH_PITCH,
+    }, {
+      signal: controller.signal, cues: [], onStart: () => {}, onTarget: () => {},
+      onEnd: () => setIsPlayingSample(false), onError: () => setIsPlayingSample(false),
+    });
   };
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={(val: boolean) => {
       if (!val && typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
+        sampleAbortRef.current?.abort();
         setIsPlayingSample(false);
       }
       onOpenChange(val);
@@ -120,7 +122,7 @@ export function VoiceSettingsDialog({
             <div className="min-w-0 flex-1">
               <p className="mb-1 text-[10px] font-semibold uppercase tracking-[.16em] text-[#a9adb6]">Make it yours</p>
               <DialogPrimitive.Title className="text-base font-semibold tracking-[-.025em] sm:text-lg">Voice & pacing</DialogPrimitive.Title>
-              <DialogPrimitive.Description className="mt-1 text-xs leading-5 text-[#a9adb6]">Find a voice and a rhythm that help you learn.</DialogPrimitive.Description>
+              <DialogPrimitive.Description className="mt-1 text-xs leading-5 text-[#a9adb6]">Browser voices with clear technical readings and sentence pauses. No Groq credits used.</DialogPrimitive.Description>
             </div>
             <DialogPrimitive.Close className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-[#a9adb6] outline-none transition hover:bg-[#30343a] hover:text-[#f3f3ee] focus-visible:ring-2 focus-visible:ring-[#c4b5fd]" aria-label="Close voice settings"><X size={18} /></DialogPrimitive.Close>
           </header>

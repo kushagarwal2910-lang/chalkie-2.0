@@ -171,13 +171,24 @@ button:not(:disabled), a { -webkit-tap-highlight-color: transparent; }
 .studio-sketch > span:nth-child(3) { left: 164px; background: #3d3831; border-color: #74664f; }
 .studio-sketch > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .studio-followup { position: absolute; bottom: 68px; left: 50%; z-index: 500; display: flex; width: min(420px, 90%); transform: translateX(-50%); align-items: center; gap: 10px; border: 1px solid #675a80; border-radius: 12px; padding: 12px 16px; background: #302a3bea; backdrop-filter: blur(6px); }
-.studio-composer { min-width: 0; flex-shrink: 0; border-top: 1px solid #33373d; padding: 12px 16px 10px; }
+.studio-composer { min-width: 0; flex-shrink: 0; border-top: 1px solid #33373d; padding: 8px 12px; }
+.studio-prompt-options-trigger { position: relative; }
+.studio-context-dot { position: absolute; right: 6px; top: 6px; width: 7px; height: 7px; border-radius: 50%; background: #c4b5fd; }
+.studio-prompt-options { position: fixed; inset: 0; margin: auto; width: min(580px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid #45414e; border-radius: 18px; background: #202327; color: var(--foreground); overflow: auto; }
+.studio-prompt-options::backdrop { background: #0c0d10b8; backdrop-filter: blur(4px); }
+.studio-prompt-options > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #363a40; }
+.studio-prompt-options h2 { font-size: 16px; font-weight: 600; }
+.studio-prompt-options header p, .studio-prompt-options-note { margin-top: 6px; font-size: 12px; line-height: 1.7; color: #a9adb6; }
+.studio-prompt-options-body { padding: 16px 20px; }
+.studio-prompt-options .repository-composer-tools { flex-wrap: wrap; }
+.studio-question-modes { display: flex; flex-wrap: wrap; gap: 4px; margin: 12px 0; }
+.studio-prompt-options > footer { display: flex; justify-content: flex-end; padding: 12px 20px; border-top: 1px solid #363a40; }
 .studio-mode { display: inline-flex; min-height: 30px; align-items: center; gap: 5px; border: 1px solid transparent; border-radius: 999px; padding: 4px 10px; font-size: 11px; color: var(--muted); }
 .studio-mode:hover { background: #30333a; }
 .studio-mode[aria-pressed=true] { border-color: #595067; background: #383040; color: #dbcef5; }
-.studio-prompt-form { display: flex; min-width: 0; align-items: flex-end; gap: 4px; border: 1px solid #494952; border-radius: 16px; background: #2b2d34; padding: 7px; }
+.studio-prompt-form { display: flex; min-width: 0; align-items: flex-end; gap: 4px; border: 1px solid #494952; border-radius: 14px; background: #2b2d34; padding: 5px; }
 .studio-prompt-form:focus-within { border-color: #c4b5fd; }
-.studio-prompt-form textarea { min-width: 0; min-height: 40px; max-height: 120px; flex: 1; resize: none; outline: none; background: transparent; padding: 9px 8px; color: var(--foreground); font-size: 16px; line-height: 22px; field-sizing: content; }
+.studio-prompt-form textarea { min-width: 0; min-height: 40px; max-height: 88px; flex: 1; resize: none; outline: none; background: transparent; padding: 9px 4px; color: var(--foreground); font-size: 16px; line-height: 22px; field-sizing: content; }
 .studio-prompt-form textarea::placeholder { color: #a9adb6; }
 .studio-send { display: inline-flex; height: 40px; width: 40px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 50%; background: #c4b5fd; color: #292333; transition: background .15s; }
 .studio-send:hover { background: #d1c5fa; }

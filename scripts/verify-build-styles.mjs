@@ -7,7 +7,7 @@ import { pathToFileURL } from "node:url";
 // file elsewhere in .next is insufficient if the HTML still links an old one.
 const notebookSelectors = [
   "studio-shell", "studio-header", "studio-panel", "studio-board",
-  "studio-composer", "studio-mobile-tabs",
+  "studio-composer", "studio-mobile-tabs", "studio-prompt-options",
   "repository-context", "attachment-source",
 ];
 
