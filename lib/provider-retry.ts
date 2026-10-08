@@ -83,6 +83,11 @@ export function retryCountdown(nextRetryAt: number | undefined, now: number): st
 }
 
 export function providerRetryView(failure: ProviderFailure | null, quota: ProviderQuota | null, now: number) {
+  if (failure?.code === "REPOSITORY_MISMATCH") {
+    return { canRetry: false, countdown: null, needsKeys: false, needsRepositoryAccess: false,
+      title: failure.message,
+      detail: "Reopen the matching notebook or index its repository again. Your current board is preserved." };
+  }
   if (failure?.code.startsWith("GITHUB_") || failure?.code === "REPOSITORY_NOT_FOUND" || failure?.code === "PUBLIC_REPOSITORY_REQUIRED" || failure?.code === "REPOSITORY_LIMIT") {
     const countdown = retryCountdown(failure.nextRetryAt, now);
     return { canRetry: failure.retryable && !countdown, countdown, needsKeys: false, needsRepositoryAccess: true,

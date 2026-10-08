@@ -66,7 +66,7 @@ export async function ingestRepository(input: string, options: Options): Promise
   const url = "https://codeload.github.com/" + encodeURIComponent(repo.owner) + "/" + encodeURIComponent(repo.name) + "/zip/" + encodeURIComponent(repo.ref ?? "HEAD");
   const candidate = cache.get(url);
   // A cached blueprint-only snapshot cannot satisfy the richer tree/code index.
-  const cached = candidate?.snapshot.tree && candidate.snapshot.sourceFiles ? candidate : undefined;
+  const cached = candidate?.snapshot.analysisVersion === 2 && candidate.snapshot.tree && candidate.snapshot.sourceFiles ? candidate : undefined;
   try {
     options.onStatus?.(cached ? "Checking the public repository for changes" : "Importing public GitHub snapshot · no GitHub token needed");
     const response = await (options.fetcher ?? fetch)(url, {

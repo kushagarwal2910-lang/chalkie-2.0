@@ -54,7 +54,7 @@ test("an overview preserves its introduction and whole useful passages within th
   await createRepositoryLesson(index, "developer", {}, async (_url, init) => {
     const body = String(init.body), request = JSON.parse(body), context = JSON.parse(request.messages[1].content);
     assert.ok(Buffer.byteLength(body) <= 14000);
-    assert.equal(request.max_completion_tokens, 3000);
+    assert.equal(request.max_completion_tokens, 4000);
     assert.ok(context.evidence.some((item: Evidence) => item.id === source.id));
     assert.ok(context.evidence.length > 1 && context.evidence.length < index.evidence.length);
     for (const item of context.evidence) assert.equal(item.text, original.find(source => source.id === item.id)!.text);

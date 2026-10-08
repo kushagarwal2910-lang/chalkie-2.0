@@ -5,16 +5,17 @@ import { examplePenalty } from "./evidence-search";
 import { RepositoryError, type BlueprintKind, type RepositoryIndex } from "./types";
 
 export const ARCHIVE_BYTE_LIMIT = 32 * 1024 * 1024;
-const FILE_BYTE_LIMIT = 128000;
+const FILE_BYTE_LIMIT = 512000;
 const CONTENT_BYTE_LIMIT = 1800000;
 const FILE_LIMIT = 120;
-const SOURCE_FILE_LIMIT = 160;
-const SOURCE_CONTENT_BYTE_LIMIT = 3 * 1024 * 1024;
+const SOURCE_FILE_LIMIT = 3000;
+const SOURCE_EXCERPT_FILE_LIMIT = 160;
+const SOURCE_CONTENT_BYTE_LIMIT = 32 * 1024 * 1024;
 const SOURCE_EVIDENCE_BYTE_LIMIT = 3 * 1024 * 1024;
 const SOURCE_EVIDENCE_LIMIT = 2400;
 const ENTRY_LIMIT = 50000;
 
-export type PublicBlueprintSnapshot = Pick<RepositoryIndex, "repository" | "discoveredFiles" | "files" | "evidence" | "warnings" | "tree" | "sourceFiles">;
+export type PublicBlueprintSnapshot = Pick<RepositoryIndex, "repository" | "discoveredFiles" | "files" | "evidence" | "warnings" | "tree" | "sourceFiles" | "analysisVersion">;
 export type PublicRepository = { owner: string; name: string; url: string; ref?: string };
 type Candidate = { path: string; entry: Entry; kind: Exclude<BlueprintKind, "source"> };
 type SourceCandidate = { path: string; entry: Entry };
@@ -54,12 +55,12 @@ export async function readPublicArchive(
     // git archive embeds the immutable commit SHA in the ZIP comment.
     const commit = zip.comment;
     if (!/^[a-f0-9]{40}$/.test(commit) || /^[a-f0-9]{40}$/i.test(repo.ref ?? "") && commit !== repo.ref!.toLowerCase()) throw invalidArchive();
-    if (previous?.repository.commit === commit && Array.isArray(previous.tree) && Array.isArray(previous.sourceFiles)) {
+    if (previous?.analysisVersion === 2 && previous.repository.commit === commit && Array.isArray(previous.tree) && Array.isArray(previous.sourceFiles)) {
       onStatus?.("Reusing code and blueprints from the same public repository commit");
       return previous;
     }
     if (zip.entryCount > ENTRY_LIMIT) throw new RepositoryError("This snapshot exceeds the 50,000-entry import limit. Use a smaller public repository.", "REPOSITORY_LIMIT");
-    const snapshot: PublicBlueprintSnapshot = { repository: { owner: repo.owner, name: repo.name, url: repo.url, commit }, discoveredFiles: 0, files: [], evidence: [], warnings: [], tree: [], sourceFiles: [] };
+    const snapshot: PublicBlueprintSnapshot = { repository: { owner: repo.owner, name: repo.name, url: repo.url, commit }, discoveredFiles: 0, files: [], evidence: [], warnings: [], tree: [], sourceFiles: [], analysisVersion: 2 };
     const candidates: Candidate[] = [];
     const sources: SourceCandidate[] = [];
     const seen = new Set<string>();
@@ -92,17 +93,17 @@ export async function readPublicArchive(
       } else if (language) {
         snapshot.discoveredFiles++; sourceCount++;
         sources.push({ path, entry });
-        sources.sort(compareSources);
-        if (sources.length > SOURCE_FILE_LIMIT) sources.pop();
       }
     }
     snapshot.tree!.sort((a, b) => a.path.localeCompare(b.path));
+    sources.sort(compareSources);
+    sources.splice(SOURCE_FILE_LIMIT);
     if (blueprintCount > FILE_LIMIT) snapshot.warnings.push(`Found ${blueprintCount} candidate blueprints; scanned the first ${FILE_LIMIT} by blueprint priority. This overview is partial.`);
     if (sourceCount > SOURCE_FILE_LIMIT) snapshot.warnings.push(`Found ${sourceCount} candidate source files; scanned up to ${SOURCE_FILE_LIMIT}, prioritizing entrypoints and application code. Source coverage is partial.`);
     const readText = async ({ path, entry }: SourceCandidate) => {
       signal.throwIfAborted();
       if (!entry.uncompressedSize || entry.uncompressedSize > FILE_BYTE_LIMIT) {
-        snapshot.warnings.push(path + ": skipped empty or oversized file (128 KB per-file limit)."); return null;
+        snapshot.warnings.push(path + ": skipped empty or oversized file (512 KB per-file limit)."); return null;
       }
       if (entry.isEncrypted()) { snapshot.warnings.push(path + ": encrypted entries are unsupported."); return null; }
       const stream = await zip.openReadStreamPromise(entry);
@@ -151,8 +152,8 @@ export async function readPublicArchive(
     for (const [i, candidate] of sources.entries()) {
       const { path, entry } = candidate;
       signal.throwIfAborted();
-      if ((entry.uncompressedSize <= FILE_BYTE_LIMIT && sourceBytes + entry.uncompressedSize > SOURCE_CONTENT_BYTE_LIMIT) || sourceEvidence >= SOURCE_EVIDENCE_LIMIT || sourceEvidenceFull) {
-        snapshot.warnings.push("Reached the source indexing budget (3 MiB of code, 3 MiB of excerpt text, or 2,400 excerpts). Some source files were not indexed."); break;
+      if (entry.uncompressedSize <= FILE_BYTE_LIMIT && sourceBytes + entry.uncompressedSize > SOURCE_CONTENT_BYTE_LIMIT) {
+        snapshot.warnings.push("Reached the 32 MiB source analysis budget. Remaining file paths are mapped and available for targeted lookup; their symbols are not yet analyzed."); break;
       }
       onStatus?.(`Reading code ${i + 1}/${sources.length} · ${path}`);
       if (entry.uncompressedSize <= FILE_BYTE_LIMIT) sourceBytes += entry.uncompressedSize;
@@ -161,8 +162,11 @@ export async function readPublicArchive(
       try {
         const parsed = analyzeSource(path, content.raw);
         if (!parsed.evidence.length) { snapshot.warnings.push(path + ": no usable source excerpts; generated or unsupported content was excluded."); continue; }
-        snapshot.sourceFiles!.push({ path, language: parsed.language, parser: parsed.parser, imports: parsed.imports, symbols: parsed.symbols });
+        snapshot.sourceFiles!.push({ path, language: parsed.language, parser: parsed.parser, imports: parsed.imports, symbols: parsed.symbols, definitions: parsed.definitions, analysisComplete: parsed.analysisComplete });
         snapshot.files.push({ path, kind: "source", bytes: content.size });
+        // Build the symbol map independently of the much smaller overview context.
+        // Later files remain discoverable by class/function and can be read on demand.
+        if (i >= SOURCE_EXCERPT_FILE_LIMIT || sourceEvidenceFull || sourceEvidence >= SOURCE_EVIDENCE_LIMIT) continue;
         for (const item of parsed.evidence) {
           const bytes = Buffer.byteLength(item.text);
           if (sourceEvidence >= SOURCE_EVIDENCE_LIMIT || sourceEvidenceBytes + bytes > SOURCE_EVIDENCE_BYTE_LIMIT) {
@@ -177,6 +181,7 @@ export async function readPublicArchive(
         snapshot.warnings.push(path + ": source analysis was unavailable; its contents were excluded.");
       }
     }
+    if (snapshot.sourceFiles!.length > SOURCE_EXCERPT_FILE_LIMIT || sourceEvidenceFull) snapshot.warnings.push("The symbol map covers more files than the initial code excerpts. Questions retrieve matching files and line ranges from this exact commit.");
     snapshot.warnings.push("Imported a public repository snapshot with a filtered file tree and bounded code excerpts. Secrets, vendored dependencies, generated/build output, symlinks, submodules, and files excluded by Git archive export rules are not included. No repository code was executed.");
     snapshot.warnings = snapshot.warnings.length > 100 ? [...snapshot.warnings.slice(0, 98), ...snapshot.warnings.slice(-2)] : snapshot.warnings;
     return snapshot;

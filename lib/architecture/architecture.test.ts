@@ -210,7 +210,7 @@ test("a rejected ungrounded draft gets one bounded JSON-mode recovery with full 
   const lesson = await createRepositoryLesson(fixtureIndex(), "developer", {}, async (_path, init) => {
     const body = String(init.body), request = JSON.parse(body);
     assert.ok(Buffer.byteLength(body) <= 14000);
-    assert.equal(request.max_completion_tokens, 3000);
+    assert.equal(request.max_completion_tokens, 4000);
     assert.equal(request.model, "openai/gpt-oss-120b");
     if (++requests === 1) {
       assert.equal(request.response_format.type, "json_schema");
@@ -434,7 +434,7 @@ test("large documents and diagram history cannot grow the full Groq request past
     calls++;
     const body = String(init.body), request = JSON.parse(body), context = JSON.parse(request.messages[1].content);
     assert.ok(Buffer.byteLength(body) <= 14000);
-    assert.equal(request.max_completion_tokens, 3000);
+    assert.equal(request.max_completion_tokens, 4000);
     assert.ok(context.evidence.some((e: Evidence) => e.origin === "attachment"));
     return Response.json({ choices: [{ message: { content: calls === 1 ? "{}" : JSON.stringify(output) } }] });
   });

@@ -7,6 +7,7 @@ import { loadRepositoryIndex, repositoryOwner, saveRepositoryIndex } from "@/lib
 import { createRepositoryFollowUp } from "@/lib/architecture/explanation";
 import { RepositoryError } from "@/lib/architecture/types";
 import { investigateRepository } from "@/lib/architecture/repository-research";
+import { assertNotebookRepository } from "@/lib/architecture/supporting-context";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -20,6 +21,7 @@ export async function POST(request: NextRequest) {
     if (!input.currentLesson.repository) throw new RepositoryError("This is a legacy lesson. Paste a GitHub URL to start a repository walkthrough.", "LEGACY_LESSON");
     if (input.currentLesson.segments.length > 220) throw new RepositoryError("This walkthrough has reached its saved step limit. Start another walkthrough of this repository.", "SESSION_LIMIT");
     const saved = await loadRepositoryIndex(input.currentLesson.repository.indexId, ownerKey);
+    assertNotebookRepository(saved, input.currentLesson);
     const quota = await getGroqQuotaSnapshot(input.sessionId);
     send("provider_status", quota);
     if (quota.allUnavailable) throw new GroqFreeLimitError(quota);

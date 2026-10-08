@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { investigateRepository, researchCandidates } from "./repository-research";
-import { questionTerms, searchRepositoryEvidence } from "./evidence-search";
+import { investigateRepository, researchCandidates, isResearchReadablePath } from "./repository-research";
+import { questionTerms, questionFileAnchors, searchRepositoryEvidence } from "./evidence-search";
 import { analyzeSource } from "./source-analysis";
 import { archiveResponse, zipFixture } from "./test-zip-fixture";
 import type { Evidence, RepositoryIndex, RepositoryTreeEntry } from "./types";
@@ -10,7 +10,7 @@ const commit = "b".repeat(40);
 const originalEvidence: Evidence = { id: "old_readme_citation", path: "README.md", kind: "documentation", startLine: 1, endLine: 1, text: "Project setup guide." };
 const treeFile = (path: string, bytes = 180, kind: RepositoryTreeEntry["kind"] = "source"): RepositoryTreeEntry => ({ path, bytes, kind });
 function fixture(tree: RepositoryTreeEntry[] = []): RepositoryIndex {
-  return { version: 1, id: "053f2faa-6326-4736-87f2-260f80c0a5cd", ownerKey: "owner-browser", repository: { owner: "team", name: "example", url: "https://github.com/team/example", commit }, createdAt: "2026-10-01T00:00:00.000Z", discoveredFiles: tree.length + 1, files: [{ path: "README.md", bytes: 20, kind: "documentation" }], evidence: [{ ...originalEvidence }], warnings: [], tree, sourceFiles: [] };
+  return { version: 1, analysisVersion: 2, id: "053f2faa-6326-4736-87f2-260f80c0a5cd", ownerKey: "owner-browser", repository: { owner: "team", name: "example", url: "https://github.com/team/example", commit }, createdAt: "2026-10-01T00:00:00.000Z", discoveredFiles: tree.length + 1, files: [{ path: "README.md", bytes: 20, kind: "documentation" }], evidence: [{ ...originalEvidence }], warnings: [], tree, sourceFiles: [] };
 }
 const sourceResponse = () => new Response("export function authenticateUser(request) {\n  return verifySession(request);\n}\n");
 
@@ -43,7 +43,7 @@ test("targeted research fetches pinned public source with no credentials or redi
 
 test("sensitive, vendor, generated, binary, oversized and unrelated paths are never fetched", async () => {
   const excluded = ["vendor/auth.ts", "node_modules/auth/index.js", ".env.auth.ts", "secrets/auth.py", "src/auth.generated.ts", "src/auth.d.ts", "src/auth.min.js", "assets/auth.png", "build/auth.js", "src/credentials.ts", "../auth.ts", "https://internal.example/auth.ts", "C:\\private\\auth.ts", "/auth.ts"];
-  const index = fixture([treeFile("src/auth.ts"), treeFile("src/colors.ts"), treeFile("src/auth-large.ts", 128001), ...excluded.map(name => treeFile(name))]);
+  const index = fixture([treeFile("src/auth.ts"), treeFile("src/colors.ts"), treeFile("src/auth-large.ts", 512001), ...excluded.map(name => treeFile(name))]);
   const paths: string[] = [];
   await investigateRepository(index, "Explain authentication", { fetcher: async input => { paths.push(String(input)); return sourceResponse(); } });
   assert.deepEqual(paths, [`https://raw.githubusercontent.com/team/example/${commit}/src/auth.ts`]);
@@ -77,23 +77,26 @@ test("research fetches at most six files including local import neighbors", asyn
   index.files.push({ path: "src/auth0.ts", kind: "source", bytes: 150 });
   index.sourceFiles = [{ path: "src/auth0.ts", language: "typescript", parser: "typescript-ast", imports: ["./helper1", "./helper2"], symbols: ["authenticateUser", "session", "login"] }];
   let calls = 0;
-  const result = await investigateRepository(index, "Explain authentication and login", { fetcher: async () => { calls++; return sourceResponse(); } });
+  const result = await investigateRepository(index, "Explain authentication and login", { maxFiles: 6, fetcher: async input => {
+    calls++;
+    return String(input).endsWith("/auth0.ts") ? new Response("import './helper1';\nimport './helper2';\nexport function authenticateUser() { return true; }") : sourceResponse();
+  } });
   assert.equal(calls, 6);
   assert.equal(result.research?.fetchedFiles, 6);
   assert.ok(result.research?.paths.includes("src/helper1.ts"));
   assert.ok(result.research?.paths.includes("src/helper2.ts"));
 });
 
-test("the source byte limit accepts 128000 bytes and rejects both declared and streamed overflow", async () => {
+test("the source byte limit accepts 512000 bytes and rejects both declared and streamed overflow", async () => {
   const source = "export function auth() { return true; }\n";
-  const accepted = await investigateRepository(fixture([treeFile("src/auth.ts", 128000)]), "auth.ts", { fetcher: async () => new Response(source.padEnd(128000, " "), { headers: { "content-length": "128000" } }) });
+  const accepted = await investigateRepository(fixture([treeFile("src/auth.ts", 512000)]), "auth.ts", { fetcher: async () => new Response(source.padEnd(512000, " "), { headers: { "content-length": "512000" } }) });
   assert.equal(accepted.research?.fetchedFiles, 1);
   for (const declared of [false, true]) {
     let cancelled = false;
     const index = fixture([treeFile("src/auth.ts")]);
     const result = await investigateRepository(index, "auth.ts", { fetcher: async () => new Response(new ReadableStream({
-      start(controller) { controller.enqueue(new Uint8Array(128001)); }, cancel() { cancelled = true; },
-    }), { headers: declared ? { "content-length": "128001" } : {} }) });
+      start(controller) { controller.enqueue(new Uint8Array(512001)); }, cancel() { cancelled = true; },
+    }), { headers: declared ? { "content-length": "512001" } : {} }) });
     assert.equal(cancelled, true);
     assert.equal(result.research?.fetchedFiles, 0);
     assert.deepEqual(result.evidence, index.evidence);
@@ -167,6 +170,7 @@ test("TypeScript ESM imports ending in js resolve to the local TypeScript implem
 test("a fresh import skips redundant indexed reads but still researches an omitted relevant neighbor", async () => {
   const index = fixture([treeFile("src/auth.ts"), treeFile("src/session.ts")]);
   index.files.push({ path: "src/auth.ts", kind: "source", bytes: 180 });
+  index.evidence.push({ id: "existing_auth", path: "src/auth.ts", kind: "source", startLine: 1, endLine: 1, text: "export function authenticateUser(request) { return verifySession(request); }" });
   index.sourceFiles = [{ path: "src/auth.ts", language: "typescript", parser: "typescript-ast", imports: ["./session"], symbols: ["authenticateUser"] }];
   const calls: string[] = [];
   const result = await investigateRepository(index, "Explain authentication", { freshlyIndexed: true, fetcher: async input => {
@@ -278,4 +282,161 @@ test("an unavailable old-index upgrade honestly falls back to saved evidence", a
   assert.deepEqual(result.evidence, index.evidence);
   assert.match(result.research?.notes.join(" ") ?? "", /file map was unavailable/);
   assert.equal(result.research?.fetchedFiles, 0);
+});
+
+test("exact file and line anchors win over same-named files and early overview snippets", async () => {
+  const source = Array.from({ length: 450 }, (_, i) => i === 420 ? "export const specialThreshold = 42;" : `// ordinary line ${i + 1}`).join("\n");
+  const index = fixture([treeFile("src/settings.ts", Buffer.byteLength(source)), treeFile("other/settings.ts")]);
+  const question = "Explain src/settings.ts#L421-L425";
+  assert.deepEqual(questionFileAnchors(index, question), [{ path: "src/settings.ts", startLine: 421, endLine: 425 }]);
+  assert.deepEqual(questionFileAnchors(index, "Explain lines 421–425 of src\\settings.ts"), [{ path: "src/settings.ts", startLine: 421, endLine: 425 }]);
+  assert.deepEqual(researchCandidates(index, question).map(file => file.path), ["src/settings.ts"]);
+  const result = await investigateRepository(index, question, { fetcher: async input => {
+    assert.ok(String(input).endsWith("/src/settings.ts")); return new Response(source);
+  } });
+  const answer = searchRepositoryEvidence(result, question, 1)[0];
+  assert.equal(answer.path, "src/settings.ts");
+  assert.ok(answer.startLine <= 421 && answer.endLine >= 421);
+  assert.match(answer.text, /specialThreshold = 42/);
+  assert.deepEqual(questionFileAnchors(index, "src/settings.ts:999999999999999999999"), [{ path: "src/settings.ts" }]);
+});
+
+test("research follows imported modules and reverse importers within the requested hop bound", () => {
+  const index = fixture(["src/core.ts", "src/helper.ts", "src/routes.ts", "src/cli.ts", "src/unrelated.ts"].map(file => treeFile(file)));
+  index.sourceFiles = [
+    { path: "src/core.ts", imports: ["./helper"], symbols: ["processItem"] },
+    { path: "src/routes.ts", imports: ["./core"], symbols: ["handle"] },
+    { path: "src/cli.ts", imports: ["./routes"], symbols: ["run"] },
+  ].map(file => ({ ...file, language: "typescript", parser: "typescript-ast" }));
+  assert.deepEqual(researchCandidates(index, "What would changing src/core.ts affect?", true, { maxHops: 1 }).map(file => file.path), ["src/core.ts", "src/helper.ts", "src/routes.ts"]);
+  assert.deepEqual(researchCandidates(index, "What would changing src/core.ts affect?", true, { maxHops: 2 }).map(file => file.path), ["src/core.ts", "src/helper.ts", "src/routes.ts", "src/cli.ts"]);
+});
+
+test("newly inspected imports expand research iteratively without exceeding two hops", async () => {
+  const sources: Record<string, string> = {
+    "entry.ts": "import './middle'; export const entry = 1;",
+    "middle.ts": "import './leaf'; export const middle = 1;",
+    "leaf.ts": "import './beyond'; export const leaf = 1;",
+    "beyond.ts": "export const beyond = 1;",
+  };
+  const index = fixture(Object.keys(sources).map(file => treeFile("src/" + file)));
+  const result = await investigateRepository(index, "Explain src/entry.ts", { fetcher: async input => new Response(sources[String(input).split("/").at(-1)!]) });
+  assert.deepEqual(result.research?.paths, ["src/entry.ts", "src/middle.ts", "src/leaf.ts"]);
+});
+
+test("metadata-only files are read on the initial import when a named definition needs its body", async () => {
+  const index = fixture([treeFile("src/polynomials.ts")]);
+  index.files.push({ path: "src/polynomials.ts", kind: "source", bytes: 180 });
+  index.sourceFiles = [{ path: "src/polynomials.ts", language: "typescript", parser: "typescript-ast", imports: [], symbols: [], definitions: [{ name: "evaluateLegendre", kind: "function", startLine: 1, endLine: 3 }] }];
+  const result = await investigateRepository(index, "How does evaluateLegendre work?", { freshlyIndexed: true, fetcher: async () => new Response("export function evaluateLegendre(x) {\n return (3 * x * x - 1) / 2;\n}") });
+  assert.deepEqual(result.research?.paths, ["src/polynomials.ts"]);
+  assert.match(searchRepositoryEvidence(result, "evaluateLegendre", 1)[0].text, /3 \* x \* x/);
+});
+
+test("caller file and byte budgets bound iterative research and disclose incomplete coverage", async () => {
+  const sources = { "entry.ts": "import './middle'; export const entry = 1;", "middle.ts": "import './leaf'; export const middle = 1;", "leaf.ts": "export const leaf = 1;" };
+  const index = fixture(Object.entries(sources).map(([name, text]) => treeFile("src/" + name, Buffer.byteLength(text))));
+  const fetcher: typeof fetch = async input => new Response(sources[String(input).split("/").at(-1)! as keyof typeof sources]);
+  const byFiles = await investigateRepository(index, "src/entry.ts", { maxFiles: 2, fetcher });
+  assert.deepEqual(byFiles.research?.paths, ["src/entry.ts", "src/middle.ts"]);
+  assert.match(byFiles.research?.notes.join(" ") ?? "", /2-file budget/);
+  const byBytes = await investigateRepository(index, "src/entry.ts", { maxBytes: Buffer.byteLength(sources["entry.ts"]) + 1, fetcher });
+  assert.deepEqual(byBytes.research?.paths, ["src/entry.ts"]);
+  assert.match(byBytes.research?.notes.join(" ") ?? "", /byte budget/);
+});
+
+test("explicit safe configuration and CI text remain quoted evidence with redacted secrets and exact lines", async () => {
+  for (const file of [".github/workflows/check.yml", "docs/dev-guide.rst", "config/settings.toml", "settings.ini", "project.xml"]) {
+    assert.equal(isResearchReadablePath(file), true);
+    const text = Array.from({ length: 50 }, (_, i) => i === 30 ? "test_command = npm test" : i === 31 ? 'api_key = "gsk_' + "A".repeat(40) + '"' : "# ordinary setup line").join("\n");
+    const index = fixture([treeFile(file, Buffer.byteLength(text), "blueprint")]);
+    const result = await investigateRepository(index, `${file}:31-32`, { fetcher: async () => new Response(text) });
+    const answer = searchRepositoryEvidence(result, `${file}:31-32`, 1)[0];
+    assert.equal(answer.kind, "documentation");
+    assert.equal(answer.path, file);
+    assert.equal(answer.startLine, 31);
+    assert.match(answer.text, /npm test/);
+    assert.doesNotMatch(JSON.stringify(result), /gsk_A{40}/);
+  }
+  for (const file of ["package-lock.json", "Cargo.lock", "node_modules/a.txt", "secrets/setup.md"]) assert.equal(isResearchReadablePath(file), false);
+});
+
+test("onboarding research pairs contributor docs with public and central implementation across packages", () => {
+  const paths = ["README.md", "CONTRIBUTING.md", "docs/development/index.rst", ".github/ISSUE_TEMPLATE/bug_report.md", ".github/workflows/tutorial.yml", "library/__init__.py", "library/data/core.py", "library/data/read.py", "library/analysis/core.py", "library/analysis/run.py", "tests/test_core.py", "examples/contribute.py"];
+  const index = fixture(paths.map(file => treeFile(file)));
+  index.sourceFiles = [
+    { path: "library/__init__.py", imports: [".analysis.core", ".data.core"], symbols: [] },
+    { path: "library/analysis/run.py", imports: [".core", "..data.core"], symbols: [] },
+    { path: "library/data/read.py", imports: [".core"], symbols: [] },
+  ].map(file => ({ ...file, language: "python", parser: "python-cst" }));
+  const question = "I'm a beginner, want to contribute to this repo, help me figure out codebase";
+  index.sourceFiles[0].definitions = ["repo", "help", "figure", "contribute"].map(name => ({ name, kind: "variable", startLine: 1, endLine: 1 }));
+  const candidates = researchCandidates(index, question, true, { maxFiles: 6 }).map(file => file.path);
+  assert.ok(candidates.includes("CONTRIBUTING.md"));
+  assert.ok(candidates.includes("library/__init__.py"));
+  assert.ok(candidates.includes("library/data/core.py"));
+  assert.ok(candidates.includes("library/analysis/core.py"));
+  assert.ok(!candidates.some(file => /ISSUE_TEMPLATE|workflows|tests\/|examples\//.test(file)));
+  index.evidence = [
+    ...Array.from({ length: 8 }, (_, i) => ({ ...originalEvidence, id: "guide" + i, path: "CONTRIBUTING.md", startLine: 1 + i * 10, endLine: 10 + i * 10, text: "Beginner contributor development guide codebase" })),
+    { id: "implementation", path: "library/__init__.py", kind: "source", startLine: 1, endLine: 3, text: "from .analysis.core import Analysis\nfrom .data.core import Dataset" },
+    { id: "core", path: "library/data/core.py", kind: "source", startLine: 1, endLine: 3, text: "class Dataset:\n    def read(self): return read_table(self.path)" },
+  ];
+  const answer = searchRepositoryEvidence(index, question, 4);
+  assert.equal(answer[0].kind, "documentation");
+  assert.equal(answer[1].kind, "source");
+  assert.equal(answer.filter(source => source.path === "CONTRIBUTING.md").length, 2);
+});
+
+test("a pre-definition-map index upgrades once even when it already has a tree", async () => {
+  const index = fixture([treeFile("src/main.ts")]);
+  index.analysisVersion = 1;
+  const archive = zipFixture([{ name: "snapshot/README.md", text: originalEvidence.text }, { name: "snapshot/src/main.ts", text: "export function main() { return 1; }" }], commit);
+  let archiveCalls = 0;
+  const fetcher: typeof fetch = async input => {
+    if (String(input).startsWith("https://codeload.github.com/")) { archiveCalls++; return archiveResponse(archive); }
+    return new Response("export function main() { return 1; }");
+  };
+  const upgraded = await investigateRepository(index, "Explain main", { fetcher });
+  assert.equal(upgraded.analysisVersion, 2);
+  assert.equal(upgraded.id, index.id);
+  assert.deepEqual(upgraded.evidence.find(source => source.id === originalEvidence.id), originalEvidence);
+  await investigateRepository(upgraded, "Explain main", { fetcher });
+  assert.equal(archiveCalls, 1);
+});
+
+test("onboarding keeps a worker method ahead of same-directory export barrels and test importers", async () => {
+  const index = fixture([treeFile("README.md", 20, "blueprint"), treeFile("src/index.ts"), treeFile("src/worker.ts"), ...Array.from({ length: 20 }, (_, i) => treeFile(`tests/worker${i}.ts`))]);
+  const barrel: Evidence = { id: "barrel", path: "src/index.ts", kind: "source", startLine: 1, endLine: 1, text: "export { Worker } from './worker';" };
+  const body: Evidence = { id: "body", path: "src/worker.ts", kind: "source", startLine: 1, endLine: 5, text: "export class Worker {\n  run(job) {\n    return execute(job);\n  }\n}" };
+  index.evidence.push(barrel, body);
+  index.sourceFiles = [
+    { path: "src/index.ts", imports: ["./worker"], symbols: ["Worker"], definitions: [] },
+    { path: "src/worker.ts", imports: [], symbols: ["Worker", "run"], definitions: [{ name: "Worker", kind: "class", startLine: 1, endLine: 5 }, { name: "run", kind: "method", startLine: 2, endLine: 4 }] },
+    ...Array.from({ length: 20 }, (_, i) => ({ path: `tests/worker${i}.ts`, imports: ["../src/worker"], symbols: [], definitions: [] })),
+  ].map(file => ({ ...file, language: "typescript", parser: "typescript-ast" })) as NonNullable<RepositoryIndex["sourceFiles"]>;
+  const question = "I'm a beginner and want to contribute to this codebase";
+  const paths = researchCandidates(index, question).map(file => file.path);
+  assert.ok(paths.includes("src/worker.ts"));
+  assert.ok(paths.includes("src/index.ts"));
+  assert.ok(!paths.some(file => file.startsWith("tests/")));
+  assert.equal(searchRepositoryEvidence(index, question, 2)[1].id, "body");
+  let calls = 0;
+  await investigateRepository(index, question, { freshlyIndexed: true, fetcher: async () => { calls++; return sourceResponse(); } });
+  assert.equal(calls, 0, "Fresh useful evidence does not trigger test-importer filler reads");
+  assert.ok(researchCandidates(index, "Explain tests/worker0.ts").some(file => file.path === "tests/worker0.ts"));
+});
+
+test("static local imports resolve C headers, Java packages, Go packages and Rust crate modules", () => {
+  for (const fixtureCase of [
+    { file: "src/main.cpp", dependency: "src/worker.h", language: "cpp", parser: "cpp-cst", imported: "worker.h" },
+    { file: "src/main/java/app/Main.java", dependency: "src/main/java/app/Worker.java", language: "java", parser: "java-cst", imported: "app.Worker" },
+    { file: "cmd/main.go", dependency: "internal/worker/task.go", language: "go", parser: "go-cst", imported: "github.com/team/example/internal/worker" },
+    { file: "src/lib.rs", dependency: "src/worker.rs", language: "rust", parser: "rust-cst", imported: "worker::run" },
+    { file: "src/jobs/queue.rs", dependency: "src/worker.rs", language: "rust", parser: "rust-cst", imported: "crate::worker::run" },
+  ] as const) {
+    const index = fixture([treeFile(fixtureCase.file), treeFile(fixtureCase.dependency)]);
+    index.sourceFiles = [{ path: fixtureCase.file, language: fixtureCase.language, parser: fixtureCase.parser, symbols: [], imports: [fixtureCase.imported] }];
+    assert.deepEqual(researchCandidates(index, `Explain ${fixtureCase.file}`).map(file => file.path), [fixtureCase.file, fixtureCase.dependency]);
+  }
 });

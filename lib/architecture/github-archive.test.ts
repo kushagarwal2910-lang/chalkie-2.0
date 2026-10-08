@@ -93,7 +93,7 @@ test("archive paths, duplicate names, corruption and missing commit provenance f
 });
 
 test("oversized blueprints are skipped and dishonest uncompressed sizes are rejected", async () => {
-  const large = await imported(zipFixture([doc, { name: "project-HEAD/ARCHITECTURE.md", text: "x".repeat(128001) }]));
+  const large = await imported(zipFixture([doc, { name: "project-HEAD/ARCHITECTURE.md", text: "x".repeat(512001) }]));
   assert.equal(large.files.length, 1); assert.ok(large.warnings.some(w => /oversized/.test(w)));
   await assert.rejects(imported(zipFixture([{ ...doc, text: "x".repeat(100000), declaredSize: 10 }])), { code: "GITHUB_INVALID_ARCHIVE" });
 });

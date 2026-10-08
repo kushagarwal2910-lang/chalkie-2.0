@@ -42,7 +42,8 @@ test("archive source indexing stores static code evidence, import metadata and a
   assert.ok(snapshot.evidence.every(item => /^e\d+$/.test(item.id)));
   assert.doesNotMatch(JSON.stringify(snapshot), new RegExp(secret + "|UNREAD_BINARY|UNREAD_LICENSE"));
   assert.ok(statuses.some(message => message.startsWith("Reading code")));
-  assert.deepEqual(Object.keys(ts!).sort(), ["imports", "language", "parser", "path", "symbols"]);
+  assert.deepEqual(Object.keys(ts!).sort(), ["analysisComplete", "definitions", "imports", "language", "parser", "path", "symbols"]);
+  assert.ok(ts?.definitions?.some(symbol => symbol.name === "handleTask" && symbol.startLine === 3 && symbol.endLine === 5));
 });
 
 test("sensitive, dependency and generated paths are excluded even from the tree and never decompressed", async () => {
@@ -69,11 +70,11 @@ test("source limits preserve complete safe metadata and prioritize entrypoints w
   ]);
   assert.equal(snapshot.tree?.length, 165);
   assert.equal(snapshot.discoveredFiles, 165);
-  assert.equal(snapshot.sourceFiles?.length, 160);
+  assert.equal(snapshot.sourceFiles?.length, 164);
   assert.equal(snapshot.files.filter(entry => entry.kind !== "source").length, 1);
   assert.equal(snapshot.sourceFiles?.[0].path, "main.py");
   for (const path of ["src/start.ts", "app/api/jobs/route.ts"]) assert.ok(snapshot.sourceFiles?.some(entry => entry.path === path));
-  assert.ok(snapshot.warnings.some(message => /164 candidate source files/.test(message) && /partial/.test(message)));
+  assert.ok(snapshot.warnings.some(message => /symbol map covers more files/.test(message)));
 });
 
 test("decompressed source budget is separate from the blueprint budget and stored excerpts stay bounded", async () => {
@@ -81,19 +82,19 @@ test("decompressed source budget is separate from the blueprint budget and store
   const text = prefix + "x".repeat(100000 - prefix.length);
   const snapshot = await imported([doc, ...Array.from({ length: 40 }, (_, i) => file(`src/task${i}.ts`, text))]);
   const sourceFiles = snapshot.files.filter(entry => entry.kind === "source");
-  assert.equal(sourceFiles.length, 31);
-  assert.ok(sourceFiles.reduce((bytes, entry) => bytes + entry.bytes, 0) <= 3 * 1024 * 1024);
+  assert.equal(sourceFiles.length, 40);
+  assert.ok(sourceFiles.reduce((bytes, entry) => bytes + entry.bytes, 0) <= 32 * 1024 * 1024);
   assert.ok(snapshot.evidence.filter(entry => entry.kind === "source").reduce((bytes, entry) => bytes + Buffer.byteLength(entry.text), 0) <= 3 * 1024 * 1024);
   assert.ok(snapshot.files.some(entry => entry.path === "README.md"));
   assert.equal(snapshot.tree?.length, 41);
-  assert.ok(snapshot.warnings.some(message => /source indexing budget/.test(message)));
+  assert.ok(snapshot.sourceFiles?.every(file => file.definitions?.some(definition => definition.name === "processTask")));
   assert.doesNotMatch(JSON.stringify(snapshot), /x{2000}/);
 });
 
 test("Python test filenames cannot displace implementation files at the source cap", async () => {
   const tests = Array.from({ length: 160 }, (_, i) => file(`model/a${i}_test.py`, `def test_${i}():\n    assert True\n`));
   const snapshot = await imported([...tests, file("model/z_sampler.py", "def sample(logits):\n    return logits.argmax()\n")]);
-  assert.equal(snapshot.sourceFiles?.length, 160);
+  assert.equal(snapshot.sourceFiles?.length, 161);
   assert.equal(snapshot.sourceFiles?.[0].path, "model/z_sampler.py");
   assert.equal(snapshot.tree?.length, 161);
 });
@@ -101,7 +102,7 @@ test("Python test filenames cannot displace implementation files at the source c
 test("oversized, binary and generated-content source is not indexed while metadata remains available", async () => {
   const snapshot = await imported([
     doc,
-    { ...file("large.ts", "not decompressed"), declaredSize: 128001, invalidDeflate: true },
+    { ...file("large.ts", "not decompressed"), declaredSize: 512001, invalidDeflate: true },
     file("binary.py", "\0exported bytes"),
     file("client.ts", "// Automatically generated.\nexport function client() { return true; }"),
     file("main.ts", "export function main() { return 42; }"),

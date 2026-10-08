@@ -19,6 +19,20 @@ test('unsupported private repositories do not ask users for provider or GitHub k
   assert.equal(view.title, failure.message); assert.match(view.detail, /public repository/);
   assert.doesNotMatch(view.detail, /Open Manage keys|check GitHub permissions/);
 });
+
+test('notebook snapshot mismatches retain their recovery guidance despite stale provider quotas', () => {
+  const timestamp = 1800000000000;
+  const failure = { code: 'REPOSITORY_MISMATCH', message: 'This notebook does not match its saved repository snapshot.', retryable: false, nextRetryAt: timestamp + 60000 };
+  for (const degradationReason of ['no_keys', 'all_keys_invalid', 'cooldown_active', 'all_keys_exhausted']) {
+    const groq = { source: 'byok', allUnavailable: true, keys: [], degradationReason, nextRetryAt: timestamp + 120000 };
+    const view = providerRetryView(failure, groq, timestamp);
+    assert.equal(view.canRetry, false); assert.equal(view.countdown, null);
+    assert.equal(view.needsKeys, false); assert.equal(view.needsRepositoryAccess, false);
+    assert.equal(view.title, failure.message);
+    assert.match(view.detail, /matching notebook or index its repository again/);
+    assert.doesNotMatch(view.detail, /retry the same|keys|allowance|window/i);
+  }
+});
 import { readProviderEventStream } from '../lib/provider-event-stream.ts';
 
 const now = 1_800_000_000_000;

@@ -70,9 +70,9 @@ test("Python CST preserves decorated routes, imports, calls and return flow", ()
 });
 
 test("unsupported AST languages remain bounded source text without invented metadata", () => {
-  const result = analyzeSource("src/main.go", 'package main\nimport "fmt"\nfunc main() { fmt.Println("hello") }\n');
-  assert.equal(result.parser, "text"); assert.equal(result.language, "go"); assert.deepEqual(result.imports, []); assert.deepEqual(result.symbols, []);
-  assert.ok(result.evidence.some(item => item.text.includes('fmt.Println("hello")')));
+  const result = analyzeSource("src/main.rb", 'def main\n  puts "hello"\nend\n');
+  assert.equal(result.parser, "text"); assert.equal(result.language, "ruby"); assert.deepEqual(result.imports, []); assert.deepEqual(result.symbols, []); assert.equal(result.analysisComplete, false);
+  assert.ok(result.evidence.some(item => item.text.includes('puts "hello"')));
 });
 
 test("secret assignments and multiline credentials are masked before snippets are selected", () => {
@@ -155,9 +155,9 @@ test("analysis caps snippets, metadata and UTF-8 input and ignores generated or 
   const text = Array.from({ length: 180 }, (_, i) => `import dep${i} from "dependency-${i}";\nexport function task${i}() { return invoke${i}(dep${i}); }\n${"// local explanation\n".repeat(5)}`).join("\n");
   const result = analyzeSource("src/tasks.ts", text);
   assert.ok(result.evidence.length > 0 && result.evidence.length <= 20);
-  assert.ok(result.imports.length <= 80 && result.symbols.length <= 80);
+  assert.ok(result.imports.length <= 1000 && result.symbols.length <= 1000 && result.definitions.length <= 1000);
   assert.ok(result.evidence.every(item => item.text.length <= 1800));
-  for (const input of ["x".repeat(128 * 1024 + 1), "é".repeat(70000), "\u0000binary", "// Code generated automatically. DO NOT EDIT.\nfunction run() {}", ""]) assert.deepEqual(analyzeSource("app.js", input).evidence, []);
+  for (const input of ["x".repeat(512001), "é".repeat(260000), "\u0000binary", "// Code generated automatically. DO NOT EDIT.\nfunction run() {}", ""]) assert.deepEqual(analyzeSource("app.js", input).evidence, []);
   assert.deepEqual(analyzeSource("secrets.py", "password = 'must-not-parse'").evidence, []);
 });
 
@@ -182,4 +182,77 @@ test("source inspection never executes top-level repository statements", () => {
   const result = analyzeSource("src/test.js", `globalThis.${key} = "executed";\nthrow new Error("must never execute");\nexport function work() { return run(); }`);
   assert.equal(Reflect.get(globalThis, key), before); assert.equal(result.parser, "typescript-ast");
   assert.ok(result.evidence.length > 0);
+});
+
+test("TypeScript definition metadata separates named declarations from invocations", () => {
+  const text = ['export interface Job { id: string }', 'export type JobId = string;', 'export class Worker {', '  run(task: Job) { return submit(task); }', '  close = () => shutdown();', '}', 'export const start = () => new Worker();'].join("\n");
+  const result = analyzeSource("src/worker.ts", text);
+  for (const [name, kind] of [["Job", "interface"], ["JobId", "type"], ["Worker", "class"], ["run", "method"], ["close", "method"], ["start", "function"]]) assert.ok(result.definitions.some(item => item.name === name && item.kind === kind), name);
+  assert.ok(result.symbols.includes("submit")); assert.ok(!result.definitions.some(item => item.name === "submit"));
+  assert.deepEqual(result.definitions.find(item => item.name === "Worker"), { name: "Worker", kind: "class", startLine: 3, endLine: 6 });
+  assert.equal(result.analysisComplete, true);
+});
+
+test("Python definition metadata identifies classes and methods with original source lines", () => {
+  const text = ['class Worker:', '    def run(self, task):', '        return submit(task)', '', 'def main():', '    return Worker().run(task)'].join("\n");
+  const result = analyzeSource("src/worker.py", text);
+  assert.deepEqual(result.definitions.find(item => item.name === "Worker"), { name: "Worker", kind: "class", startLine: 1, endLine: 3 });
+  assert.ok(result.definitions.some(item => item.name === "run" && item.kind === "method"));
+  assert.ok(result.definitions.some(item => item.name === "main" && item.kind === "function"));
+  assert.ok(!result.definitions.some(item => item.name === "submit")); assert.equal(result.analysisComplete, true);
+});
+
+test("C and C++ use a concrete syntax parser for includes, classes and defined functions", () => {
+  const text = '#include "worker.h"\nclass Worker {\n public:\n  int run(int n) { return send(n); }\n};\nint execute() { Worker w; return w.run(1); }';
+  const result = analyzeSource("src/worker.cpp", text);
+  assert.equal(result.parser, "cpp-cst"); assert.ok(result.imports.includes("worker.h"));
+  for (const [name, kind] of [["Worker", "class"], ["run", "method"], ["execute", "function"]]) assert.ok(result.definitions.some(item => item.name === name && item.kind === kind), name);
+  assert.ok(!result.definitions.some(item => item.name === "send")); assert.equal(result.analysisComplete, true);
+  assert.equal(analyzeSource("src/main.c", "int main(void) { return execute(); }").parser, "cpp-cst");
+  const multiline = analyzeSource("src/run.cpp", "int\nexecute()\n{\n  return send();\n}");
+  assert.deepEqual(multiline.definitions.filter(item => item.name === "execute"), [{ name: "execute", kind: "function", startLine: 1, endLine: 5 }]);
+});
+
+test("Java, Go and Rust expose parsed classes/types and methods without inferring executions", () => {
+  const fixtures = [
+    { path: "Worker.java", parser: "java-cst", text: "import java.util.List;\npublic class Worker { public int run(int n) { return send(n); } }\ninterface Job { void start(); }", names: [["Worker", "class"], ["Job", "interface"], ["run", "method"]] },
+    { path: "worker.go", parser: "go-cst", text: 'package main\nimport "fmt"\ntype Worker struct { Count int }\nfunc (w *Worker) Run(n int) int { return send(n) }\nfunc main() { fmt.Println("hi") }', names: [["Worker", "class"], ["Run", "method"], ["main", "function"]] },
+    { path: "worker.rs", parser: "rust-cst", text: "use crate::jobs::submit;\nstruct Worker { count: i32 }\ntrait Job { fn start(&self); }\nimpl Worker { fn run(&self, n: i32) -> i32 { submit(n) } }\nfn main() { Worker { count: 0 }; }", names: [["Worker", "class"], ["Job", "interface"], ["run", "method"], ["main", "function"]] },
+  ];
+  for (const fixture of fixtures) {
+    const result = analyzeSource(fixture.path, fixture.text);
+    assert.equal(result.parser, fixture.parser); assert.equal(result.analysisComplete, true, fixture.path);
+    assert.ok(result.imports.length > 0);
+    for (const [name, kind] of fixture.names) assert.ok(result.definitions.some(item => item.name === name && item.kind === kind), fixture.path + ":" + name);
+  }
+});
+
+test("explicit line requests prioritize the requested region beyond ordinary snippet limits", () => {
+  const lines = Array.from({ length: 450 }, (_, i) => `const item${i} = ${i};`);
+  lines[419] = "const desired = performSpecificCalculation();";
+  const text = lines.join("\n");
+  for (const question of ["Explain src/items.ts:420-422", "Explain src/items.ts#L420-L422", "What happens at line 420?", "Explain L420-L422 in src/items.ts"]) {
+    const result = analyzeSource("src/items.ts", text, question);
+    assert.ok(result.evidence[0].text.includes("performSpecificCalculation"), question);
+    assert.ok(result.evidence[0].startLine <= 420 && result.evidence[0].endLine >= 422, question);
+  }
+  const explicit = analyzeSource("src/items.ts", text, "Explain this", [{ startLine: 420, endLine: 422 }]);
+  assert.ok(explicit.evidence[0].text.includes("performSpecificCalculation"));
+});
+
+test("explicit line windows retain source redaction, bounds and unsupported-language honesty", () => {
+  const text = Array.from({ length: 250 }, (_, i) => i === 219 ? 'api_key = "MUST_NOT_LEAK"' : `value_${i} = ${i}`).join("\n");
+  const result = analyzeSource("config/settings.rb", text, "Inspect line 220", [{ startLine: 220, endLine: 224 }]);
+  assert.equal(result.parser, "text"); assert.equal(result.analysisComplete, false); assert.doesNotMatch(JSON.stringify(result), /MUST_NOT_LEAK/);
+  assert.ok(result.evidence[0].startLine <= 220 && result.evidence[0].endLine >= 224);
+  assert.ok(result.evidence.length <= 20 && result.evidence.every(item => item.text.length <= 1800));
+});
+
+test("definition metadata exceeds old overview limits and reports capped or invalid analysis honestly", () => {
+  const complete = analyzeSource("src/classes.py", Array.from({ length: 240 }, (_, i) => `class Class${i}:\n    def run(self):\n        return ${i}\n`).join("\n"));
+  assert.equal(complete.definitions.filter(item => item.kind === "class").length, 240); assert.equal(complete.analysisComplete, true);
+  const capped = analyzeSource("src/classes.ts", Array.from({ length: 1100 }, (_, i) => `class Class${i} {}`).join("\n"));
+  assert.equal(capped.definitions.length, 1000); assert.equal(capped.analysisComplete, false);
+  const invalid = analyzeSource("src/broken.py", "def broken(:\n    return 1");
+  assert.equal(invalid.analysisComplete, false);
 });

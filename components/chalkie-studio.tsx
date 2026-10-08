@@ -50,6 +50,8 @@ import { RepositoryAccess } from "@/components/repository-access";
 import { RepositoryContext } from "@/components/repository-context";
 import { AttachmentSource } from "@/components/attachment-source";
 import { emptyRepositoryInput, takeRepositoryDraft, type RepositoryInput } from "@/lib/repository-input";
+import { NotebookRestoreGate, notebookLocation } from "@/lib/notebook-navigation";
+import { RepositoryMap } from "@/components/repository-map";
 import { importArchitectureDocument } from "@/lib/architecture/document";
 import { VoiceSettingsDialog } from "@/components/voice-settings-dialog";
 import { StudioWorkspace } from "@/components/studio-workspace";
@@ -190,6 +192,7 @@ export function ChalkieStudio() {
   const audioChunksRef = useRef<Blob[]>([]);
   const pendingAutoplayRef = useRef<number | null>(null);
   const startupHandledRef = useRef(false);
+  const [restoreGate] = useState(() => new NotebookRestoreGate());
   const voiceMonitorRef = useRef<number | null>(null);
   const voiceContextRef = useRef<AudioContext | null>(null);
   const { status: connectionStatus, send: sendRealtime } = useRealtime(sessionId, (event) => {
@@ -253,6 +256,7 @@ export function ChalkieStudio() {
   }, []);
 
   useEffect(() => {
+    if (startupHandledRef.current) return;
     const params = new URLSearchParams(window.location.search);
     const initialQuestion = params.get("q")?.trim() ?? "";
     const lessonId = params.get("id")?.trim() ?? "";
@@ -272,25 +276,12 @@ export function ChalkieStudio() {
     }
 
     let cancelled = false;
+    const restoreIsCurrent = restoreGate.begin();
     const loader = lessonId ? loadLessonById(lessonId) : loadCurrentLesson();
 
     void loader.then((stored) => {
-      if (cancelled || !stored) return;
-      setAudience(stored.audience ?? "developer");
-      try {
-        const repaired = repairAndValidateLessonPlan(stored);
-        setLesson(repaired);
-        setGenerationStage("Lesson restored");
-      } catch {
-        const parsed = lessonPlanSchema.safeParse(stored);
-        if (parsed.success) {
-          setLesson(parsed.data);
-          setGenerationStage("Lesson restored");
-        } else if (stored && (stored as LessonPlan).objects?.length) {
-          setLesson(stored as LessonPlan);
-          setGenerationStage("Lesson restored");
-        }
-      }
+      if (cancelled || !restoreIsCurrent() || !stored) return;
+      restoreNotebook(stored);
     }).catch(() => undefined);
 
     return () => { cancelled = true; };
@@ -301,27 +292,19 @@ export function ChalkieStudio() {
 
   useEffect(() => {
     const handleUrlChange = () => {
+      const restoreIsCurrent = restoreGate.begin();
+      clearPendingProviderRequest();
+      stopPlayback(false);
       const params = new URLSearchParams(window.location.search);
       const targetId = params.get("id")?.trim() ?? "";
       if (targetId && targetId !== lesson.id) {
         void loadLessonById(targetId).then((stored) => {
-          if (stored) {
-            setAudience(stored.audience ?? "developer");
-            clearPendingProviderRequest();
-            stopPlayback(false);
-            setRevealedStep(null);
-            try {
-              setLesson(repairAndValidateLessonPlan(stored));
-            } catch {
-              setLesson(stored);
-            }
-            setGenerationStage("Lesson restored");
-          }
-        });
+          if (restoreIsCurrent() && stored) restoreNotebook(stored);
+        }).catch(() => undefined);
       }
     };
     window.addEventListener("popstate", handleUrlChange);
-    return () => window.removeEventListener("popstate", handleUrlChange);
+    return () => { restoreGate.cancel(); window.removeEventListener("popstate", handleUrlChange); };
     // Playback/request cancellation uses refs. Rebind only when the displayed
     // lesson identity changes, rather than on each narration render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -364,6 +347,27 @@ export function ChalkieStudio() {
   function notify(message: string) {
     setToast(message);
     window.setTimeout(() => setToast(null), 2200);
+  }
+
+  function pinNotebook(id?: string) {
+    window.history.replaceState(window.history.state, "", notebookLocation(window.location, id));
+  }
+
+  function restoreNotebook(stored: LessonPlan) {
+    let restored: LessonPlan;
+    try { restored = repairAndValidateLessonPlan(stored); }
+    catch {
+      const parsed = lessonPlanSchema.safeParse(stored);
+      if (!parsed.success) { notify("This saved notebook is invalid. Reopen its repository to create a new walkthrough."); return; }
+      restored = parsed.data;
+    }
+    clearPendingProviderRequest(); stopPlayback(false);
+    lessonStateRef.current = restored;
+    setLesson(restored); setAudience(restored.audience ?? "developer");
+    setRepositoryContext(emptyRepositoryInput()); setPrompt(""); setPromptMode("auto");
+    setActiveStep(0); setLastAnswer(""); setLastHeard(""); setRevealedStep(null);
+    pinNotebook(restored.id);
+    setGenerationStage("Lesson restored");
   }
 
   function handleProviderStatus(value: unknown) {
@@ -424,6 +428,8 @@ export function ChalkieStudio() {
   }
 
   async function generateLesson(question: string, context: RepositoryInput = repositoryContext, contextIndexId?: string) {
+    startupHandledRef.current = true;
+    restoreGate.cancel();
     stopPlayback(true);
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -470,7 +476,9 @@ export function ChalkieStudio() {
       pendingAutoplayRef.current = 0;
       setIsPlaying(true);
       setRevealedStep(-1);
+      lessonStateRef.current = generated;
       setLesson(generated);
+      pinNotebook(generated.id);
       setRepositoryContext(emptyRepositoryInput());
       setPromptMode("auto");
       setActiveStep(0);
@@ -488,6 +496,8 @@ export function ChalkieStudio() {
   }
 
   async function askFollowUp(question: string, currentLesson: LessonPlan = lesson) {
+    restoreGate.cancel();
+    pinNotebook(currentLesson.id);
     stopPlayback(true);
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -888,10 +898,14 @@ export function ChalkieStudio() {
               <DropdownMenuItem onSelect={async () => {
                 if (!confirm("Clear saved walkthroughs, your repository indexes and personal keys, and start fresh?")) return;
                 clearPendingProviderRequest();
+                restoreGate.cancel();
                 stopPlayback(true);
                 await clearAllClientStorage();
                 try { await fetch("/api/reset", { method: "POST" }); } catch { /* Keep local reset available offline. */ }
                 setLesson(emptyLesson);
+                lessonStateRef.current = emptyLesson;
+                setRepositoryContext(emptyRepositoryInput()); setPrompt("");
+                pinNotebook();
                 setRevealedStep(null);
                 notify("Workspace cleared");
               }} className="min-h-11 gap-3 rounded-lg text-[#f0aca9] focus:bg-[#493134] focus:text-[#ffd3d0]"><Trash2 size={16} /> Clear workspace</DropdownMenuItem>
@@ -902,10 +916,16 @@ export function ChalkieStudio() {
       <input ref={importRef} type="file" accept="application/json,.json" className="sr-only" tabIndex={-1} aria-label="Import architecture JSON file" onChange={async e => {
         const file = e.target.files?.[0]; e.target.value = "";
         if (!file) return;
+        const importIsCurrent = restoreGate.begin();
         try {
           if (file.size > 2_000_000) throw new Error("This JSON file exceeds the 2 MB document limit.");
           const imported = importArchitectureDocument(await file.text());
+          if (!importIsCurrent()) return;
+          restoreGate.cancel();
           clearPendingProviderRequest(); stopPlayback(true); setLesson(imported); setAudience(imported.audience ?? "developer"); setRevealedStep(null); setActiveStep(0); setLastAnswer(""); setGenerationStage("Architecture imported");
+          lessonStateRef.current = imported;
+          setRepositoryContext(emptyRepositoryInput()); setPrompt(""); setPromptMode("auto");
+          pinNotebook(imported.id);
           notify("Architecture imported. Follow-ups require the original browser's unexpired repository index, or reindexing its URL.");
         } catch (error) { notify(error instanceof Error ? error.message : "Could not import this document."); }
       }} />
@@ -919,8 +939,8 @@ export function ChalkieStudio() {
             {retryState.status === "failed" && retryState.operation && "question" in retryState.operation && <p className="mt-1 truncate text-xs text-[#dbc2ab]">Pending {retryState.operation.kind === "followup" ? "follow-up" : "lesson"}: {retryState.operation.question}</p>}
           </div>
           <div className="flex flex-wrap gap-2">
-            {retryState.status === "failed" && retryState.failure?.code !== "PUBLIC_REPOSITORY_REQUIRED" && <button type="button" onClick={() => void retryFailedRequest()} disabled={isBusy || !retryView.canRetry} className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-[#e9bd92] px-3 text-xs font-semibold text-[#30251e] disabled:cursor-not-allowed disabled:opacity-45"><RotateCcw size={13} /> Retry request</button>}
-            <button type="button" onClick={() => document.querySelector<HTMLButtonElement>(retryView.needsRepositoryAccess ? "[title='Repository access']" : "[title='Provider keys and live rate limits']")?.click()} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-[#75553a] px-3 text-xs font-semibold text-[#f1cba7]">{retryView.needsRepositoryAccess ? <CircleHelp size={13} /> : <KeyRound size={13} />}{retryView.needsRepositoryAccess ? "Import details" : "Manage keys"}</button>
+            {retryState.status === "failed" && !["PUBLIC_REPOSITORY_REQUIRED", "REPOSITORY_MISMATCH"].includes(retryState.failure?.code ?? "") && <button type="button" onClick={() => void retryFailedRequest()} disabled={isBusy || !retryView.canRetry} className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-[#e9bd92] px-3 text-xs font-semibold text-[#30251e] disabled:cursor-not-allowed disabled:opacity-45"><RotateCcw size={13} /> Retry request</button>}
+            {retryState.failure?.code !== "REPOSITORY_MISMATCH" && <button type="button" onClick={() => document.querySelector<HTMLButtonElement>(retryView.needsRepositoryAccess ? "[title='Repository access']" : "[title='Provider keys and live rate limits']")?.click()} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-[#75553a] px-3 text-xs font-semibold text-[#f1cba7]">{retryView.needsRepositoryAccess ? <CircleHelp size={13} /> : <KeyRound size={13} />}{retryView.needsRepositoryAccess ? "Import details" : "Manage keys"}</button>}
           </div>
         </div>
       )}
@@ -942,7 +962,7 @@ export function ChalkieStudio() {
               <div className="px-4 pb-4">
                 <label className="studio-search"><Search size={15} /><input value={sourceQuery} onChange={(event) => setSourceQuery(event.target.value)} placeholder="Find a source" aria-label="Search lesson sources" /></label>
               </div>
-              {lesson.repository && <div className="repository-snapshot"><strong>{lesson.repository.name}</strong><span>{lesson.repository.indexedFiles} indexed files · commit {lesson.repository.commit.slice(0, 7)}</span><p>Code & architecture · snapshot retained for 7 days</p>{lesson.repository.warnings.length > 0 && <details><summary>{lesson.repository.warnings.length} coverage notes</summary>{lesson.repository.warnings.map((warning, i) => <p key={i}>{warning}</p>)}</details>}</div>}
+              {lesson.repository && <><div className="repository-snapshot"><strong>{lesson.repository.name}</strong><span>{lesson.repository.mappedFiles !== undefined ? lesson.repository.mappedFiles + " mapped · " : ""}{lesson.repository.indexedFiles} indexed files · commit {lesson.repository.commit.slice(0, 7)}</span>{lesson.repository.analyzedFiles !== undefined && <p>{lesson.repository.analyzedFiles} code files analyzed{lesson.repository.definitionCount !== undefined ? " · " + lesson.repository.definitionCount + " definitions" : ""}</p>}<p>Code & architecture · snapshot retained for 7 days</p>{lesson.repository.warnings.length > 0 && <details><summary>{lesson.repository.warnings.length} coverage notes</summary>{lesson.repository.warnings.map((warning, i) => <p key={i}>{warning}</p>)}</details>}</div><RepositoryMap key={lesson.repository.indexId} indexId={lesson.repository.indexId} /></>}
               <div className="studio-panel-scroll px-3">
                 {!displaySources.length && <div className="studio-empty-card"><FileText size={25} /><h3>{lesson.sources.length ? "No matching sources" : "A little context goes a long way"}</h3><p>{lesson.sources.length ? "Try a different title or publisher." : "Repository blueprint citations will appear here after indexing."}</p></div>}
                 <div className="space-y-1">
@@ -991,7 +1011,7 @@ export function ChalkieStudio() {
                   <button type="button" onClick={toggleRecording} aria-label={isRecording ? "Stop recording" : "Ask with your voice"} title={isRecording ? "Stop recording" : "Ask with your voice"} className={`studio-icon-button ${isRecording ? "voice-ring bg-[#493134] text-[#f0aca9]" : "text-[#c4b5fd]"}`}><Mic size={18} /></button>
                   <button type="submit" aria-label="Send question" title="Send question" className="studio-send" disabled={!canSubmitPrompt || readingDocuments}>{isBusy ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#292333]/30 border-t-[#292333]" /> : <Send size={17} />}</button>
                 </form>
-                <p className={isRecording || voiceState === "transcribing" || isBusy ? "studio-composer-hint" : "sr-only"} role="status">{isRecording ? "Listening — pause when you finish" : voiceState === "transcribing" ? "Turning your voice into a question…" : voiceState === "thinking" ? generationStage : voiceState === "speaking" ? "Chalkie is explaining · ask a question to interrupt" : "Blueprints and documentation · source code stays out of the index"}</p>
+                <p className={isRecording || voiceState === "transcribing" || isBusy ? "studio-composer-hint" : "sr-only"} role="status">{isRecording ? "Listening — pause when you finish" : voiceState === "transcribing" ? "Turning your voice into a question…" : voiceState === "thinking" ? generationStage : voiceState === "speaking" ? "Chalkie is explaining · ask a question to interrupt" : "Repository code and architecture · supporting documentation optional"}</p>
               </div>
             </section>
           }

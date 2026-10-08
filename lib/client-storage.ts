@@ -57,7 +57,7 @@ export async function loadLessonById(id: string): Promise<LessonPlan | null> {
       const store = transaction.objectStore(STORE_NAME);
       const req = store.get(`lesson:${id}`);
       req.onsuccess = () => {
-        if (req.result) {
+        if (req.result?.id === id) {
           resolve(req.result as LessonPlan);
           return;
         }
@@ -81,7 +81,7 @@ export async function loadLessonById(id: string): Promise<LessonPlan | null> {
   if (typeof window !== "undefined") {
     try {
       const direct = window.localStorage.getItem(`chalkie:lesson:${id}`);
-      if (direct) return JSON.parse(direct) as LessonPlan;
+      if (direct) { const parsed = JSON.parse(direct) as LessonPlan; if (parsed.id === id) return parsed; }
       const recent = window.localStorage.getItem("chalkie:recent-lessons");
       if (recent) {
         const list = JSON.parse(recent) as LessonPlan[];
@@ -110,7 +110,7 @@ export async function saveCurrentLesson(lesson: LessonPlan): Promise<void> {
       window.localStorage.setItem(`chalkie:lesson:${lesson.id}`, JSON.stringify(lesson));
       const rawRecent = window.localStorage.getItem("chalkie:recent-lessons");
       const localRecent: LessonPlan[] = rawRecent ? (JSON.parse(rawRecent) as LessonPlan[]) : [];
-      const updated = [lesson, ...localRecent.filter((item) => item.id !== lesson.id && item.question !== lesson.question)].slice(0, MAX_RECENT);
+      const updated = [lesson, ...localRecent.filter((item) => item.id !== lesson.id)].slice(0, MAX_RECENT);
       window.localStorage.setItem("chalkie:recent-lessons", JSON.stringify(updated));
     } catch {
       // localStorage quota or private browsing fallback
@@ -128,7 +128,7 @@ export async function saveCurrentLesson(lesson: LessonPlan): Promise<void> {
       const recentRequest = store.get(RECENT_KEY);
       recentRequest.onsuccess = () => {
         const recent = Array.isArray(recentRequest.result) ? (recentRequest.result as LessonPlan[]) : [];
-        const next = [lesson, ...recent.filter((item) => item.id !== lesson.id && item.question !== lesson.question)].slice(0, MAX_RECENT);
+        const next = [lesson, ...recent.filter((item) => item.id !== lesson.id)].slice(0, MAX_RECENT);
         store.put(next, RECENT_KEY);
       };
       transaction.oncomplete = () => { database.close(); resolve(); };

@@ -13,7 +13,7 @@ export function RepositoryAccess() {
       <p>Paste a public GitHub repository or branch URL to map its files and inspect its code, documentation and architecture. No GitHub account connection or token is needed.</p>
       <p>Private repositories cannot be imported into Chalkie. A private, missing, or unavailable repository will show an explanation instead of requesting credentials.</p>
       <p>Importing and filtering the snapshot uses no AI tokens. Generating explanations and answering questions still use your Groq allowance.</p>
-      <small>Up to 32 MB per snapshot. Indexes up to 120 blueprint files and 160 source files, then retrieves relevant code for follow-ups. Selected source excerpts are sent to your explanation provider.</small>
+      <small>Up to 32 MB per snapshot. Maps symbols in up to 3,000 source files, then reads relevant code and documentation for each question. Browse the mapped files in Sources. Selected excerpts are sent to your explanation provider.</small>
     </dialog>, document.body)}
   </>;
 }

@@ -1,6 +1,8 @@
 export type BlueprintKind = "docker" | "compose" | "terraform" | "cloudformation" | "kubernetes" | "dependencies" | "documentation" | "yaml" | "source";
 export type RepositoryTreeEntry = { path: string; bytes: number; kind: "source" | "blueprint" | "other"; language?: string };
-export type SourceFileIndex = { path: string; language: string; parser: "typescript-ast" | "python-cst" | "text"; imports: string[]; symbols: string[] };
+export type SourceParser = "typescript-ast" | "python-cst" | "cpp-cst" | "java-cst" | "go-cst" | "rust-cst" | "text";
+export type SourceDefinition = { name: string; kind: "function" | "method" | "class" | "interface" | "type" | "variable"; startLine: number; endLine: number };
+export type SourceFileIndex = { path: string; language: string; parser: SourceParser; imports: string[]; symbols: string[]; definitions?: SourceDefinition[]; analysisComplete?: boolean };
 export type Evidence = {
   id: string;
   path: string;
@@ -23,6 +25,7 @@ export type RepositoryIndex = {
   instructions?: string;
   tree?: RepositoryTreeEntry[];
   sourceFiles?: SourceFileIndex[];
+  analysisVersion?: number;
   research?: { searchedFiles: number; fetchedFiles: number; paths: string[]; notes: string[] };
 };
 export class RepositoryError extends Error {
