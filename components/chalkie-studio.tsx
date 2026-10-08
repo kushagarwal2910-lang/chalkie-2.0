@@ -596,8 +596,8 @@ export function ChalkieStudio() {
     setActiveTargetId(null);
 
     const spokenNarration = formatNarrationForSpeech(segment.narration);
-    const targetPositions = computeTargetPositions(spokenNarration, segment.targetIds, getProgressiveVisibleObjects(lesson, index, true));
-    const initialTargetId = segment.targetIds[0] ?? targetPositions[0]?.targetId ?? null;
+    const targetPositions = computeTargetPositions(spokenNarration, segment.targetIds, getProgressiveVisibleObjects(lesson, index, true), lesson.schemaVersion === 2 ? lesson.connections : undefined);
+    const initialTargetId = targetPositions[0]?.targetId ?? segment.targetIds[0] ?? null;
     const isCurrent = () => !signal.aborted && run === playbackRunRef.current;
     const beginVisualTeaching = () => {
       if (!isCurrent()) return;
@@ -1032,7 +1032,7 @@ export function ChalkieStudio() {
         <div className="studio-prompt-options-body">
           <div className="repository-composer-tools"><label>Explain for <select aria-label="Explanation audience" value={audience} onChange={e => setAudience(e.target.value as typeof audience)} disabled={isBusy}><option value="developer">Developers</option><option value="cross-team">Product & engineering</option><option value="leadership">Leadership & investors</option></select></label><RepositoryAccess /></div>
           {hasLesson && <div className="studio-question-modes" role="group" aria-label="Question mode">{(["auto", "doubt", "new"] as const).map((mode) => <button type="button" key={mode} onClick={() => setPromptMode(mode)} aria-pressed={promptMode === mode} className="studio-mode">{mode === "auto" ? <Sparkles size={12} /> : mode === "doubt" ? <MessageSquare size={12} /> : <Plus size={12} />}{mode === "auto" ? "Auto" : mode === "doubt" ? "Follow-up" : "New repository"}</button>)}</div>}
-          {(!hasLesson || promptMode === "new" || /^https:\/\/github\.com\//i.test(prompt.trim())) ? <RepositoryContext defaultOpen value={repositoryContext} onChange={setRepositoryContext} disabled={isBusy} onBusyChange={setReadingDocuments} /> : <p className="studio-prompt-options-note">Follow-ups use the repository and documentation already indexed. Choose New repository to attach new context.</p>}
+          {(!hasLesson || promptMode === "new" || /^https:\/\/github\.com\//i.test(prompt.trim())) ? <RepositoryContext defaultOpen value={repositoryContext} onChange={setRepositoryContext} audience={audience} disabled={isBusy} onBusyChange={setReadingDocuments} /> : <p className="studio-prompt-options-note">Follow-ups use the repository and documentation already indexed. Choose New repository to attach new context.</p>}
         </div>
         <footer><button type="button" className="studio-primary px-5" onClick={() => setPromptOptionsOpen(false)}>Done</button></footer>
       </dialog>

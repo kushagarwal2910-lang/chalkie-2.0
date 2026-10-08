@@ -1,4 +1,4 @@
-import type { VisualObject } from "./lesson-schema";
+import type { VisualConnection, VisualObject } from "./lesson-schema";
 import { formatNarrationForSpeech } from "./speech-formatter";
 
 export interface TargetPosition {
@@ -19,6 +19,7 @@ const STOP_WORDS = new Set([
   "any", "most", "layer", "stage", "component", "card", "overview", "system",
   "structure", "model", "diagram", "where", "which", "then", "also", "here",
   "part", "high", "low", "shaped", "side", "type", "unit", "form", "item",
+  "as", "if", "it", "so", "we", "us", "he", "my", "me", "no",
 ]);
 
 interface CandidateTerm {
@@ -43,17 +44,27 @@ function escapeRegex(str: string): string {
 export function computeTargetPositions(
   spokenNarration: string,
   targetIds: string[],
-  objects: VisualObject[]
+  objects: VisualObject[],
+  connections?: VisualConnection[],
 ): TargetPosition[] {
   if (!objects || objects.length === 0) return [];
   const text = spokenNarration.toLowerCase();
-  const primaryIdSet = new Set(targetIds || []);
+  const primaryIdSet = new Set((targetIds || []).map(id => id.split("#")[0]));
+  const teachingConnections = (connections ?? []).filter(edge => primaryIdSet.has(edge.id));
+  for (const edge of teachingConnections) {
+    primaryIdSet.add(edge.from);
+    primaryIdSet.add(edge.to);
+  }
 
   const candidates: CandidateTerm[] = [];
 
   // Register terms from all objects (with higher priority for active segment targets)
   for (const obj of objects) {
     const isPrimary = primaryIdSet.has(obj.id);
+    // Architecture steps have explicit targets. Previously a matching noun on
+    // an earlier card could pull attention away from the current explanation.
+    // Keep the broad legacy matcher for callers without an architecture graph.
+    if (connections && !isPrimary) continue;
     const priority = isPrimary ? 2 : 1;
 
     // 1. Full cleaned object label
@@ -64,7 +75,11 @@ export function computeTargetPositions(
       .trim()
       .toLowerCase();
 
-    if (cleanLabel.length >= 3 && !STOP_WORDS.has(cleanLabel)) {
+    // Exact short service names such as "db" are meaningful when explicitly
+    // targeted (including an edge endpoint). Do not promote short fragments,
+    // unrelated labels, numbers, or common two-letter words into candidates.
+    const shortPrimaryLabel = isPrimary && /^[a-z][a-z0-9]$/.test(cleanLabel) && (obj.label || "").trim().toLowerCase() === cleanLabel;
+    if ((cleanLabel.length >= 3 || shortPrimaryLabel) && !STOP_WORDS.has(cleanLabel)) {
       candidates.push({
         term: cleanLabel,
         targetId: obj.id,
@@ -254,6 +269,41 @@ export function computeTargetPositions(
     nonOverlapping.push(m);
     lastEnd = m.charIndex + m.length;
   }
+
+  // Teach a directed handoff as source -> connection -> destination. Only use
+  // connections explicitly selected by the lesson, with both endpoints spoken
+  // in order in the same clause/sentence; proximity alone is not a relationship.
+  const handoffs: RawMatch[] = [];
+  for (let i = 1; i < nonOverlapping.length; i++) {
+    const source = nonOverlapping[i - 1];
+    const destination = nonOverlapping[i];
+    if (source.baseTargetId === destination.baseTargetId) continue;
+    const edges = teachingConnections.filter(edge => edge.from === source.baseTargetId && edge.to === destination.baseTargetId);
+    if (!edges.length) continue;
+    const start = source.charIndex + source.length;
+    const bridge = text.slice(start, destination.charIndex);
+    if (bridge.length > 180 || /[.!?]|\b(?:not|never|without|cannot|doesn['’]t|can['’]t)\b/.test(bridge)) continue;
+    const explicit = edges.flatMap(edge => {
+      const label = formatNarrationForSpeech(edge.label).replace(/[.!?]$/, "").trim().toLowerCase();
+      if (label.length < 3 || STOP_WORDS.has(label)) return [];
+      const match = new RegExp(`\\b${escapeRegex(label)}\\b`, "i").exec(bridge);
+      return match ? [{ edge, match }] : [];
+    });
+    // Parallel connections need an exact relationship label to disambiguate.
+    const selected = explicit.length === 1 ? explicit[0] : edges.length === 1 ? {
+      edge: edges[0],
+      match: /\b(?:send(?:s|ing)?|sent|pass(?:es|ing)?|call(?:s|ing)?|request(?:s|ing)?|quer(?:y|ies|ying)|read(?:s|ing)?|writ(?:e|es|ing)|stor(?:e|es|ing)|rout(?:e|es|ing)|forward(?:s|ing)?|publish(?:es|ing)?|feed(?:s|ing)?|trigger(?:s|ing)?|load(?:s|ing)?|connect(?:s|ing)?|depend(?:s|ing)?|use(?:s)?|run(?:s|ning)?|build(?:s|ing)?|deploy(?:s|ing)?|produce(?:s|d)?|contain(?:s|ing)?)\b/.exec(bridge),
+    } : undefined;
+    if (!selected?.match) continue;
+    handoffs.push({
+      charIndex: start + selected.match.index,
+      targetId: selected.edge.id, baseTargetId: selected.edge.id,
+      partIndex: -1, partLabel: selected.edge.label,
+      matchedToken: selected.match[0], length: selected.match[0].length, priority: 3,
+    });
+  }
+  nonOverlapping.push(...handoffs);
+  nonOverlapping.sort((a, b) => a.charIndex - b.charIndex);
 
   // Guaranteed fallback: If no terms matched in text, distribute segment targetIds proportionally
   if (nonOverlapping.length === 0 && targetIds.length > 0) {

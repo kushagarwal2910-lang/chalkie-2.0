@@ -193,7 +193,7 @@ export function ChalkieHome() {
             </div>
           </form>
           <div className="repository-composer-tools mt-3"><label>Explain for <select aria-label="Explanation audience" value={audience} onChange={e => setAudience(e.target.value)}><option value="developer">Developers</option><option value="cross-team">Product & engineering</option><option value="leadership">Leadership & investors</option></select></label><RepositoryAccess /></div>
-          <RepositoryContext value={repositoryContext} onChange={setRepositoryContext} onBusyChange={setReadingDocuments} />
+          <RepositoryContext value={repositoryContext} onChange={setRepositoryContext} audience={audience} onBusyChange={setReadingDocuments} />
           <p className="mt-3 text-xs text-[#a9adb6]">Reads container files, infrastructure declarations, dependencies, and docs. Application source code is excluded.</p>
           <p className="mt-3 text-xs leading-5 text-[#9297a1]">Public repositories only · No GitHub token needed. Explanations use your existing Groq allowance.</p>
         </section>

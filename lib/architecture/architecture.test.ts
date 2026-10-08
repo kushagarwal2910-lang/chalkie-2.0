@@ -95,6 +95,7 @@ test("public archives include nested blueprints without tree API traversal", asy
 
 const evidence: Evidence[] = [{ id: "e1", path: "compose.yaml", startLine: 1, endLine: 5, kind: "compose", text: "api depends_on db" }];
 const plan = () => ({ title: "System", summary: "Declared architecture", coverage: "append", nodes: [{ id: "api", kind: "service", label: "API", description: "Handles requests", group: "Backend", assetId: "concept:service", evidenceIds: ["e1"], certainty: "declared" }], edges: [], steps: [{ id: "step1", title: "API", narration: "This is the API.", targetIds: ["api"], action: "reveal", durationMs: 5000 }], targetIds: ["api"] });
+const generatedPlan = () => ({ ...plan(), nodes: plan().nodes.map(node => ({ ...node, description: "Declares a startup dependency", supportingQuote: evidence[0].text })), steps: [{ ...plan().steps[0], narration: "Start with the API. Its startup declaration names db as a prerequisite, so that is the next configuration to inspect when bringing up the project." }] });
 test("model plans reject dangling edges, unknown evidence, ID collisions and untaught nodes", () => {
   assert.ok(validateExplanation(plan(), evidence));
   assert.throws(() => validateExplanation({ ...plan(), edges: [{ id: "e", from: "api", to: "missing", label: "calls", evidenceIds: ["e1"], certainty: "declared" }] }, evidence));
@@ -162,7 +163,7 @@ test("initial generation validates, repairs once, and produces a schema-valid gr
     assert.equal(request.response_format.type, "json_schema");
     assert.match(request.messages[0].content, /untrusted data/);
     assert.match(request.messages[0].content, /Audience: leadership/);
-    return Response.json({ choices: [{ message: { content: requests === 1 ? '{"bad":"plan"}' : JSON.stringify(plan()) } }] });
+    return Response.json({ choices: [{ message: { content: requests === 1 ? '{"bad":"plan"}' : JSON.stringify(generatedPlan()) } }] });
   });
   assert.equal(requests, 2);
   assert.equal(lessonPlanSchema.parse(lesson).schemaVersion, 2);
@@ -176,14 +177,14 @@ test("a complete valid rejected draft is recovered without another Groq call", a
   let requests = 0;
   const lesson = await createRepositoryLesson(fixtureIndex(), "developer", {}, async () => {
     requests++;
-    throw rejectedDiagram(JSON.stringify(plan()));
+    throw rejectedDiagram(JSON.stringify(generatedPlan()));
   });
   assert.equal(requests, 1);
   assert.equal(lessonPlanSchema.parse(lesson).objects[0].label, plan().nodes[0].label);
 });
 
 test("Gemma-style unsupported categories and wrong coverage recover locally without another model call", async () => {
-  const draft = { ...plan(), coverage: "existing", nodes: [{ ...plan().nodes[0], kind: "library", assetId: "not-a-logo" }] };
+  const draft = { ...generatedPlan(), coverage: "existing", nodes: [{ ...generatedPlan().nodes[0], kind: "library", assetId: "not-a-logo" }] };
   let requests = 0;
   const lesson = await createRepositoryLesson(fixtureIndex(), "developer", {}, async () => { requests++; throw rejectedDiagram(JSON.stringify(draft)); });
   assert.equal(requests, 1);
@@ -218,7 +219,7 @@ test("a rejected ungrounded draft gets one bounded JSON-mode recovery with full 
     assert.match(request.messages[0].content, /additionalProperties/);
     assert.match(request.messages[0].content, /at most 4 nodes/);
     assert.doesNotMatch(body, /invented-source/);
-    return Response.json({ choices: [{ message: { content: JSON.stringify(plan()) } }] });
+    return Response.json({ choices: [{ message: { content: JSON.stringify(generatedPlan()) } }] });
   });
   assert.equal(requests, 2);
   assert.deepEqual(lesson.objects[0].evidenceIds, ["e1"]);
@@ -299,7 +300,7 @@ test("cancelling after a rejected diagram prevents the recovery call", async () 
 
 test("truncated completions are not committed and explicit refusals are not retried", async () => {
   let requests = 0;
-  await createRepositoryLesson(fixtureIndex(), "developer", {}, async () => Response.json({ choices: [{ finish_reason: ++requests === 1 ? "length" : "stop", message: { content: JSON.stringify(plan()) } }] }));
+  await createRepositoryLesson(fixtureIndex(), "developer", {}, async () => Response.json({ choices: [{ finish_reason: ++requests === 1 ? "length" : "stop", message: { content: JSON.stringify(generatedPlan()) } }] }));
   assert.equal(requests, 2);
   requests = 0;
   await assert.rejects(createRepositoryLesson(fixtureIndex(), "developer", {}, async () => {
@@ -322,8 +323,10 @@ test("malformed response envelopes use the source overview without publishing in
 test("follow-up generation reuses context and can append a grounded component without moving existing nodes", async () => {
   const current = await layoutArchitecture(fixtureLesson());
   current.conversation = [{ question: "What is the API?", answer: "It coordinates requests." }];
-  const output = { ...plan(), nodes: [{ ...plan().nodes[0], id: "extra", label: "Extra service" }], edges: [{ id: "extra-edge", from: "n1", to: "extra", label: "Documented dependency", evidenceIds: ["e1"], certainty: "documented" }], steps: [{ ...plan().steps[0], id: "extra-step", targetIds: ["extra-edge"] }], targetIds: ["extra"] };
-  const reply = await createRepositoryFollowUp(fixtureIndex(), "Explain the extra service", current, "developer", {}, async (_path, init) => {
+  const index = fixtureIndex();
+  index.evidence = [{ ...evidence[0], kind: "documentation", text: "API service sends work to Extra service." }];
+  const output = { ...generatedPlan(), nodes: [{ ...generatedPlan().nodes[0], id: "extra", label: "Extra service", supportingQuote: index.evidence[0].text }], edges: [{ id: "extra-edge", from: "n1", to: "extra", label: "Sends work", evidenceIds: ["e1"], certainty: "documented", supportingQuote: index.evidence[0].text }], steps: [{ ...generatedPlan().steps[0], id: "extra-step", narration: "API service sends work to Extra service. Follow this arrow to see the documented handoff between those two components.", targetIds: ["extra-edge"] }], targetIds: ["extra"] };
+  const reply = await createRepositoryFollowUp(index, "Explain the extra service", current, "developer", {}, async (_path, init) => {
     const context = JSON.parse(JSON.parse(String(init.body)).messages[1].content);
     assert.equal(context.current.conversation[0].question, "What is the API?");
     assert.equal(context.current.nodes.length, 5);
@@ -391,7 +394,9 @@ test("a repository without blueprints can use explicit supporting documentation 
 test("prompt and documents reach the overview and follow-up with honest attachment citations", async () => {
   const index = withSupportingContext(fixtureIndex(), repositoryInputSchema.parse({ instructions: "Explain team ownership for a new frontend engineer", documents: [{ name: "ownership.md", text: "The platform team owns the API gateway." }] }));
   const attachment = index.evidence.find(e => e.origin === "attachment")!;
-  const output = plan(); output.nodes[0].evidenceIds = [attachment.id]; output.nodes[0].certainty = "documented";
+  const output = generatedPlan(); output.nodes[0].evidenceIds = [attachment.id]; output.nodes[0].certainty = "documented";
+  output.nodes[0].supportingQuote = attachment.text;
+  output.steps[0].narration = "The platform team owns the API gateway. If you are joining the team, that gives you a documented owner to approach about this component.";
   const complete = async (_path: string, init: RequestInit) => {
     const request = JSON.parse(String(init.body));
     const context = JSON.parse(request.messages[1].content);
@@ -422,7 +427,7 @@ test("large documents and diagram history cannot grow the full Groq request past
   const current = fixtureLesson();
   current.objects = Array.from({ length: 160 }, (_, i) => ({ ...current.objects[0], id: "node" + i, label: "A long architecture component label ".repeat(2) }));
   current.connections = []; current.conversation = Array.from({ length: 30 }, () => ({ question: "question ".repeat(100), answer: "answer ".repeat(300) }));
-  const output = { ...plan(), coverage: "existing", nodes: [], edges: [], targetIds: ["node0"], steps: [{ ...plan().steps[0], id: "followup", targetIds: ["node0"] }] };
+  const output = { ...generatedPlan(), coverage: "existing", nodes: [], edges: [], targetIds: ["node0"], steps: [{ ...generatedPlan().steps[0], id: "followup", targetIds: ["node0"] }] };
   let calls = 0;
   await createRepositoryFollowUp(index, "Explain architecture", current, "developer", {}, async (_path, init) => {
     calls++;

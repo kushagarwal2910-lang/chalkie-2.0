@@ -2,8 +2,8 @@ import ELK from "elkjs/lib/elk.bundled.js";
 import type { LessonPlan, VisualObject } from "../lesson-schema.ts";
 import { layoutConnectorLabel, routeOrthogonalConnector } from "../connector-routing.ts";
 
-export const NODE_WIDTH = 284;
-export const NODE_HEIGHT = 170;
+export const NODE_WIDTH = 144;
+export const NODE_HEIGHT = 132;
 export function overlap(a: { x: number; y: number; width: number; height: number }, b: { x: number; y: number; width: number; height: number }, gap = 24) {
   return a.x < b.x + b.width + gap && a.x + a.width + gap > b.x && a.y < b.y + b.height + gap && a.y + a.height + gap > b.y;
 }

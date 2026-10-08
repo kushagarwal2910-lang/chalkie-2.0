@@ -20,11 +20,12 @@ type ArchitectureNode = Node<{ object: VisualObject; active: boolean; speaking: 
 type ArchitectureEdge = Edge<{ connection: VisualConnection; active: boolean }, "architecture">;
 const ArchitectureNodeView = memo(function ArchitectureNodeView({ data, selected }: NodeProps<ArchitectureNode>) {
   const o = data.object;
-  return <div className={"architecture-node" + (data.active ? " is-active" : "") + (selected ? " is-selected" : "")} style={{ width: o.width, height: o.height }}>
+  const label = o.label || "Untitled component";
+  return <div className={"architecture-node" + (data.active ? " is-active" : "") + (selected ? " is-selected" : "")} style={{ width: o.width, height: o.height }} title={label}>
     <Handle type="target" position={Position.Left} id="in" />
-    <div className="architecture-node-heading"><span className="architecture-asset"><ArchitectureAsset id={o.assetId} /></span><div><span className="architecture-kind">{o.kind === "unknown" ? "Component" : o.kind ?? "Legacy visual"}</span><strong title={o.label}>{o.label || "Untitled component"}</strong></div>{data.active && <span className={"architecture-pointer" + (data.speaking ? " speaking" : "")} aria-label="Explanation focus" />}</div>
-    <p className="architecture-description">{o.description || "Saved visual from an earlier Chalkie lesson. Open the inspector for its original details."}</p>
-    <div className="architecture-node-footer"><span title={o.group}>{o.group || "System component"}</span><span>{o.certainty === "inferred" || o.certainty === "unknown" ? o.certainty : (o.evidenceIds?.length ?? 0) + " sources"}</span></div>
+    <span className="architecture-asset architecture-node-icon" aria-hidden="true"><ArchitectureAsset id={o.assetId} size={56} /></span>
+    <span className="architecture-node-label">{label}</span>
+    {data.active && <span className={"architecture-pointer" + (data.speaking ? " speaking" : "")} aria-label="Explanation focus" />}
     <Handle type="source" position={Position.Right} id="out" />
   </div>;
 });
@@ -81,7 +82,7 @@ function ArchitectureCanvas({ lesson, activeSegment, isPresenting, isSpeaking = 
     for (const edge of display?.connections ?? []) if (ids.has(edge.id)) { ids.add(edge.from); ids.add(edge.to); }
     return ids;
   }, [activeTargetId, activeSegment, display]);
-  const nodes: ArchitectureNode[] = useMemo(() => (display?.objects ?? []).map(object => ({ id: object.id, type: "architecture", position: { x: object.x, y: object.y }, width: NODE_WIDTH, height: NODE_HEIGHT, data: { object, active: focusIds.has(object.id), speaking: isSpeaking }, hidden: !visibleIds.has(object.id) || Boolean(group && !isPresenting && object.group !== group), selected: selectedId === object.id })), [display, focusIds, visibleIds, selectedId, group, isPresenting, isSpeaking]);
+  const nodes: ArchitectureNode[] = useMemo(() => (display?.objects ?? []).map(object => ({ id: object.id, type: "architecture", ariaLabel: object.label || "Untitled component", position: { x: object.x, y: object.y }, width: NODE_WIDTH, height: NODE_HEIGHT, data: { object, active: focusIds.has(object.id), speaking: isSpeaking }, hidden: !visibleIds.has(object.id) || Boolean(group && !isPresenting && object.group !== group), selected: selectedId === object.id })), [display, focusIds, visibleIds, selectedId, group, isPresenting, isSpeaking]);
   const edges: ArchitectureEdge[] = useMemo(() => (display?.connections ?? []).map(connection => ({ id: connection.id, source: connection.from, target: connection.to, sourceHandle: "out", targetHandle: "in", type: "architecture", data: { connection, active: focusIds.has(connection.id) || focusIds.has(connection.from) && focusIds.has(connection.to) }, hidden: !visibleIds.has(connection.from) || !visibleIds.has(connection.to) || Boolean(group && !isPresenting && display?.objects.some(o => (o.id === connection.from || o.id === connection.to) && o.group !== group)), markerEnd: { type: "arrowclosed" as import("@xyflow/react").MarkerType, color: "#788697" } })), [display, focusIds, visibleIds, group, isPresenting]);
   useEffect(() => {
     if (!lesson || !display) return;
@@ -166,7 +167,7 @@ function ArchitectureCanvas({ lesson, activeSegment, isPresenting, isSpeaking = 
     </ReactFlow>
     {(selected || selectedEdge) && <aside className="architecture-inspector nowheel" aria-label="Component inspector">
       <div className="architecture-inspector-title"><span>{selected ? "Component" : "Connection"}</span><button onClick={() => setSelectedId(null)} aria-label="Close inspector"><X size={17} /></button></div>
-      {selected && <><span className="architecture-asset large"><ArchitectureAsset id={selected.assetId} size={40} /></span><h3>{selected.label}</h3><p>{selected.description || "Legacy diagram component. Original saved data is preserved in JSON export."}</p><small>{selected.kind ?? selected.shapeType} · {selected.certainty ?? "Legacy"}</small>
+      {selected && <><span className="architecture-asset large"><ArchitectureAsset id={selected.assetId} size={40} /></span><h3>{selected.label}</h3><p>{selected.description || "Legacy diagram component. Original saved data is preserved in JSON export."}</p><small>{[selected.group, selected.kind ?? selected.shapeType, selected.certainty ?? "Legacy"].filter(Boolean).join(" · ")}</small>
         {editable && <><label>Display name<input key={selected.id + "-" + selected.label} defaultValue={selected.label} maxLength={90} onBlur={e => { if (e.target.value.trim() && e.target.value !== selected.label) updateNode({ label: e.target.value.trim() }); }} /></label><label><Search size={13} /> Find a visual<input value={assetSearch} onChange={e => setAssetSearch(e.target.value)} placeholder="Postgres, database, cloud…" /></label><div className="architecture-asset-picker">{assetCatalog.filter(a => !assetSearch ? a.id.startsWith("concept:") : (a.name + " " + a.aliases.join(" ")).toLowerCase().includes(assetSearch.toLowerCase())).slice(0, 24).map(asset => <button key={asset.id} title={asset.name} aria-label={"Use " + asset.name + " visual"} onClick={() => updateNode({ assetId: asset.id })}><ArchitectureAsset id={asset.id} size={24} /></button>)}</div></>}
       </>}
       {selectedEdge && <><h3>{selectedEdge.label}</h3><p>{display?.objects.find(o => o.id === selectedEdge.from)?.label} → {display?.objects.find(o => o.id === selectedEdge.to)?.label}</p><small>{selectedEdge.certainty ?? "Legacy relationship"}</small>{editable && <label>Connection label<input key={selectedEdge.id + selectedEdge.label} defaultValue={selectedEdge.label} maxLength={60} onBlur={e => { if (display && e.target.value.trim() && e.target.value !== selectedEdge.label) commit({ ...display, connections: display.connections.map(edge => edge.id === selectedEdge.id ? { ...edge, label: e.target.value.trim() } : edge) }); }} /></label>}</>}

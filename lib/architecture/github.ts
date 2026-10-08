@@ -97,11 +97,13 @@ export async function ingestRepository(input: string, options: Options): Promise
 }
 
 export function retrieveEvidence(index: RepositoryIndex, question: string, limit = 24) {
-  const terms = new Set(question.toLowerCase().match(/[a-z0-9][a-z0-9._-]{2,}/g) ?? []);
+  const stopWords = new Set(["the", "and", "this", "that", "with", "from", "what", "how", "its", "for", "through", "explain", "repository", "supported", "documented", "first", "when", "then", "their", "which", "does", "into", "about", "only"]);
+  const terms = new Set((question.toLowerCase().match(/[a-z0-9][a-z0-9._-]{2,}/g) ?? []).filter(term => !stopWords.has(term)));
   const scored = index.evidence.map(item => {
     const text = (item.path + " " + item.text).toLowerCase();
     const score = [...terms].reduce((sum, term) => sum + (text.includes(term) ? 2 : 0), 0);
-    return { item, score: score + (item.kind === "documentation" ? 0.15 : 0.1) };
+    const introduction = item.startLine === 1 && /(?:^|\/)(?:readme|architecture)\.md$/i.test(item.path) ? 1 : 0;
+    return { item, score: score + introduction + (item.kind === "documentation" ? 0.15 : 0.1) };
   }).sort((a, b) => b.score - a.score);
   // Include structural evidence from each file class even when an overview has no keywords.
   const selected = new Map<string, RepositoryIndex["evidence"][number]>();
