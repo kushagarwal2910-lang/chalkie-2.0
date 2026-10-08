@@ -78,7 +78,9 @@ test("follow-up fallback focuses only an existing node tied to retrieved evidenc
   assert.deepEqual(result.edges, []);
   assert.deepEqual(result.steps[0].targetIds, ["related"]);
   assert.equal(result.steps.length, 1);
-  assert.match(result.steps[0].narration, /couldn't verify an answer/);
+  assert.match(result.steps[0].narration, /^This project guide/);
+  assert.doesNotMatch(result.steps[0].narration, /couldn't verify|don't know|lack.*context/i);
+  assert.match(result.steps[0].narration, /does not yet establish an answer to your specific question/);
   assert.doesNotMatch(result.steps[0].narration, /ARCHITECTURE|Related source|says:/);
   assert.match(result.summary, /not a verified answer/);
   assert.deepEqual(lesson, before);
@@ -95,7 +97,8 @@ test("follow-up evidence with no matching node appends one source reference with
   assert.deepEqual(result.steps[0].targetIds, [result.nodes[0].id]);
   assert.deepEqual(result.edges, []);
   assert.ok(!result.targetIds.includes("unrelated"));
-  assert.equal(result.steps[0].narration.match(/couldn't verify an answer/g)?.length, 1);
+  assert.doesNotMatch(result.steps[0].narration, /couldn't verify|don't know|lack.*context/i);
+  assert.equal(result.steps[0].narration.match(/does not yet establish an answer/g)?.length, 1);
 });
 
 test("a full diagram never redirects an unrelated source to an arbitrary existing node", () => {
@@ -103,4 +106,53 @@ test("a full diagram never redirects an unrelated source to an arbitrary existin
   const lesson = current();
   lesson.objects = Array.from({ length: 160 }, (_, i) => ({ ...lesson.objects[0], id: "old_" + i }));
   assert.throws(() => basicExplanation(repo, repo.evidence, lesson), { code: "DIAGRAM_CAPACITY" });
+});
+
+test("source-only recovery orients around parsed symbols without inventing runtime behavior or reading paths", () => {
+  const sources = [
+    evidence("ts", 'import ky from "ky";\nexport async function fetchReport() { return ky.get("/report"); }', { path: "src/internal/report-client.ts", kind: "source" }),
+    evidence("py", "from pathlib import Path\ndef load_config(name):\n    return Path(name).read_text()", { path: "tools/configuration/loader.py", kind: "source" }),
+  ];
+  const repo = index(sources);
+  repo.sourceFiles = [
+    { path: sources[0].path, parser: "typescript-ast", language: "typescript", imports: ["ky", "not-in-this-excerpt"], symbols: ["fetchReport", "ky.get", "unseenHandler"] },
+    { path: sources[1].path, parser: "python-cst", language: "python", imports: ["pathlib"], symbols: ["load_config", "Path"] },
+  ];
+  const result = validateExplanation(basicExplanation(repo, repo.evidence), repo.evidence);
+  assert.deepEqual(result.edges, []);
+  assert.equal(result.nodes.length, 2);
+  assert.equal(result.nodes[0].label, "fetchReport");
+  assert.equal(result.nodes[0].assetId, "tech:typescript");
+  assert.equal(result.nodes[1].assetId, "tech:python");
+  assert.ok(result.nodes.every(node => node.group === "Code references"));
+  const narration = result.steps.map(step => step.narration).join(" ");
+  assert.match(narration, /^The TypeScript code includes fetchReport and ky\.get\./);
+  assert.match(narration, /declares an import from ky/);
+  assert.match(narration, /Python code includes load_config and Path/);
+  assert.doesNotMatch(narration, /project guide|report-client|loader\.py|src\/internal|unseenHandler|not-in-this-excerpt|requests flow|then calls|writes to|sends to/);
+  assert.match(result.summary, /AI explanation could not be validated/);
+});
+
+test("source recovery without parser metadata remains a code reference without guessing its role", () => {
+  const source = evidence("code", 'export const topic = "database";', { path: "src/constants.ts", kind: "source" });
+  const repo = index([source]);
+  const result = validateExplanation(basicExplanation(repo, repo.evidence), repo.evidence);
+  assert.equal(result.nodes[0].label, "Code reference");
+  assert.equal(result.nodes[0].group, "Code references");
+  assert.deepEqual(result.edges, []);
+  assert.match(result.steps[0].narration, /^This is a code reference from the repository\./);
+  assert.doesNotMatch(result.steps[0].narration, /project guide|database|constants\.ts|stores|persists|couldn't verify/);
+});
+
+test("follow-up source recovery starts with evidence attached to the highlighted component", () => {
+  const source = evidence("e_related", "export function handleTask() { return 'done'; }", { path: "src/task.ts", kind: "source" });
+  const repo = index([evidence("e_unmatched", "Unrelated documentation comes first"), source]);
+  repo.sourceFiles = [{ path: source.path, language: "typescript", parser: "typescript-ast", symbols: ["handleTask"], imports: [] }];
+  const lesson = current();
+  const result = validateExplanation(basicExplanation(repo, repo.evidence, lesson), repo.evidence, lesson);
+  assert.deepEqual(result.steps[0].targetIds, ["related"]);
+  assert.match(result.steps[0].narration, /^The TypeScript code includes handleTask\./);
+  assert.doesNotMatch(result.steps[0].narration, /project guide|Unrelated|task\.ts|couldn't verify|don't know/i);
+  assert.equal(result.steps[0].narration.match(/does not yet establish an answer/g)?.length, 1);
+  assert.match(result.summary, /not a verified answer/);
 });

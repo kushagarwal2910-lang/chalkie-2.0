@@ -185,7 +185,7 @@ export function ChalkieHome() {
           <form onSubmit={submit} className="mt-7 rounded-[20px] border border-[#3f414b] bg-[#202327] p-4 sm:mt-8 sm:p-5 lg:flex lg:items-center lg:gap-8">
             <div className="mb-3 flex items-center gap-3 lg:mb-0 lg:w-[245px] lg:shrink-0">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#c4b5fd]/10 text-[#c4b5fd]"><Plus size={21} strokeWidth={1.5} /></span>
-              <div><label htmlFor="new-question" className="text-sm font-medium">Start with your repository</label><p className="mt-0.5 text-xs text-[#a9adb6]">We find the blueprints for you.</p></div>
+              <div><label htmlFor="new-question" className="text-sm font-medium">Start with your repository</label><p className="mt-0.5 text-xs text-[#a9adb6]">We connect the code, docs and architecture for you.</p></div>
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-3 min-[480px]:flex-row min-[480px]:items-center">
               <input id="new-question" ref={questionRef} value={question} onChange={event => setQuestion(event.target.value)} maxLength={1000} placeholder="https://github.com/your-team/repository" aria-label="GitHub repository URL" className="h-12 min-w-0 flex-1 rounded-xl border border-[#363a40] bg-[#17191c] px-4 text-base text-[#f3f3ee] outline-none placeholder:text-[#9297a1] focus:border-[#c4b5fd] focus:ring-2 focus:ring-[#c4b5fd]/15 sm:text-sm" />
@@ -194,7 +194,7 @@ export function ChalkieHome() {
           </form>
           <div className="repository-composer-tools mt-3"><label>Explain for <select aria-label="Explanation audience" value={audience} onChange={e => setAudience(e.target.value)}><option value="developer">Developers</option><option value="cross-team">Product & engineering</option><option value="leadership">Leadership & investors</option></select></label><RepositoryAccess /></div>
           <RepositoryContext value={repositoryContext} onChange={setRepositoryContext} audience={audience} onBusyChange={setReadingDocuments} />
-          <p className="mt-3 text-xs text-[#a9adb6]">Reads container files, infrastructure declarations, dependencies, and docs. Application source code is excluded.</p>
+          <p className="mt-3 text-xs text-[#a9adb6]">Maps the repository and reads relevant code, infrastructure and docs. Selected excerpts support the explanation.</p>
           <p className="mt-3 text-xs leading-5 text-[#9297a1]">Public repositories only · No GitHub token needed. Explanations use your existing Groq allowance.</p>
         </section>
 

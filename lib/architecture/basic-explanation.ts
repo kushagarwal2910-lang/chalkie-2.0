@@ -1,6 +1,7 @@
 import type { LessonPlan } from "../lesson-schema";
 import type { Explanation } from "./explanation";
 import { RepositoryError, type Evidence, type RepositoryIndex } from "./types";
+import { getAsset, isKnownAsset } from "./assets";
 
 function excerpt(source: Evidence) {
   // Keep source text in the inspector, never recite it as the explanation.
@@ -9,9 +10,28 @@ function excerpt(source: Evidence) {
   return text.length > 260 ? text.slice(0, 257) + "…" : text || "This file provides indexed architecture evidence.";
 }
 
-function sourceOrientation(source: Evidence): string {
+function codeReference(index: RepositoryIndex, source: Evidence) {
+  const metadata = index.sourceFiles?.find(file => file.path === source.path);
+  const tokens = new Set(source.text.match(/[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*){0,2}/g) ?? []);
+  // Symbols may be definitions or references. Never turn their names into
+  // runtime behavior, or use metadata absent from the cited excerpt.
+  const symbols = [...new Set(metadata?.symbols ?? [])].filter(name => name.length <= 50 && tokens.has(name)).slice(0, 2);
+  const imports = [...new Set(metadata?.imports ?? [])].filter(name => /^[a-z][a-z0-9_-]{1,35}$/i.test(name) && tokens.has(name)).slice(0, 2);
+  const assetId = metadata && isKnownAsset("tech:" + metadata.language) ? "tech:" + metadata.language : "concept:document";
+  const languageNames: Record<string, string> = { typescript: "TypeScript", javascript: "JavaScript" };
+  const language = assetId.startsWith("tech:") ? (languageNames[metadata!.language] ?? getAsset(assetId).name.replace(/^\w/, letter => letter.toUpperCase())) : "";
+  return { symbols, imports, assetId, language };
+}
+
+function sourceOrientation(source: Evidence, index: RepositoryIndex): string {
   if (source.origin === "attachment") return "This supporting document gives you context supplied with the question. Open its source to inspect that context alongside the repository's own declarations.";
   switch (source.kind) {
+    case "source": {
+      const code = codeReference(index, source);
+      const finding = code.symbols.length ? `The ${code.language ? code.language + " " : ""}code includes ${code.symbols.join(" and ")}.` : `This is a ${code.language ? code.language + " " : ""}code reference from the repository.`;
+      const imports = code.imports.length ? ` It declares ${code.imports.length === 1 ? "an import" : "imports"} from ${code.imports.join(" and ")}.` : "";
+      return finding + imports + (code.symbols.length || code.imports.length ? "" : " The highlighted excerpt preserves the implementation details for inspection.");
+    }
     case "compose": return "This configuration is where you inspect how containers are set up together. Open its source to check the declarations before treating any connection as a live request path.";
     case "docker": return "A container definition describes the environment an application starts in. It is a useful place to inspect startup settings before you trace what the application itself does.";
     case "dependencies": return "The dependency manifest tells you which software the project declares it needs. Use it to orient yourself in the toolchain; an installed library alone does not establish a running service.";
@@ -22,7 +42,12 @@ function sourceOrientation(source: Evidence): string {
   }
 }
 
-function documentNode(prefix: string, position: number, source: Evidence): Explanation["nodes"][number] {
+function documentNode(prefix: string, position: number, source: Evidence, index: RepositoryIndex): Explanation["nodes"][number] {
+  if (source.kind === "source" && source.origin !== "attachment") {
+    const code = codeReference(index, source);
+    return { id: prefix + "node" + position, kind: "document", label: code.symbols[0] || (code.language ? code.language + " code" : "Code reference"),
+      description: ("Code reference: “" + excerpt(source) + "”").slice(0, 400), group: "Code references", assetId: code.assetId, evidenceIds: [source.id], certainty: "documented" };
+  }
   return { id: prefix + "node" + position, kind: "document", label: (source.path.split("/").pop() || "Source document").slice(0, 90),
     description: ("Source reference: “" + excerpt(source) + "”").slice(0, 400), group: "Indexed sources", assetId: "concept:document", evidenceIds: [source.id], certainty: "documented" };
 }
@@ -39,12 +64,13 @@ export function basicExplanation(index: RepositoryIndex, evidence: Evidence[], c
     // board. Never make the first unrelated node look like an answer to it.
     const target = evidence.flatMap(source => current.objects.filter(node => node.evidenceIds?.includes(source.id)))[0];
     if (!target && current.objects.length >= 160) throw new RepositoryError("The diagram is full. Start a new walkthrough to inspect this additional source.", "DIAGRAM_CAPACITY");
-    const nodes = target ? [] : [documentNode(prefix, 0, sources[0])];
+    const source = target ? evidence.find(item => target.evidenceIds?.includes(item.id))! : sources[0];
+    const nodes = target ? [] : [documentNode(prefix, 0, source, index)];
     const targetId = target?.id ?? nodes[0].id;
     return { title: "Basic source reference", summary: "Basic source response: the AI answer could not be validated. This is a source reference, not a verified answer to your question. The existing diagram is preserved.",
       coverage: target ? "existing" : "append", nodes, edges: [],
       steps: [{ id: prefix + "step0", title: "Inspect the related source",
-        narration: "I couldn't verify an answer to that question. " + (target ? "I've highlighted the related component; open its sources to inspect the available evidence." : "I've added the closest source as a document on the canvas, so you can inspect the available evidence."),
+        narration: sourceOrientation(source, index) + " " + (target ? "The matching component is highlighted." : "This reference is highlighted on the canvas.") + " This limited reference does not yet establish an answer to your specific question.",
         targetIds: [targetId], action: "focus", durationMs: 13000 }], targetIds: [targetId] };
   }
 
@@ -83,8 +109,8 @@ export function basicExplanation(index: RepositoryIndex, evidence: Evidence[], c
     if (nodes.some(node => node.evidenceIds.includes(source.id))) continue;
     // One source orientation per file class avoids repeating generic advice for
     // several documentation excerpts as if each were a substantive answer.
-    if (nodes.some(node => node.kind === "document" && evidence.some(item => node.evidenceIds.includes(item.id) && item.kind === source.kind && item.origin === source.origin))) continue;
-    nodes.push(documentNode(prefix, nodes.length, source));
+    if ((source.kind !== "source" || source.origin === "attachment") && nodes.some(node => node.kind === "document" && evidence.some(item => node.evidenceIds.includes(item.id) && item.kind === source.kind && item.origin === source.origin))) continue;
+    nodes.push(documentNode(prefix, nodes.length, source, index));
   }
   const steps: Explanation["steps"] = nodes.map((node, i) => {
     const source = evidence.find(item => item.id === node.evidenceIds[0])!;
@@ -94,9 +120,9 @@ export function basicExplanation(index: RepositoryIndex, evidence: Evidence[], c
       : dependents.length ? "Start with " + node.label + ". " + dependents.join(" and ") + " depend on it during startup, which puts it earlier in their declared startup sequence."
       : "Compose defines " + node.label + " as a separate service. It is a named unit that can be configured and started as part of this project.";
     const linkedEdges = edges.filter(edge => edge.from === node.id).map(edge => edge.id);
-    return { id: prefix + "step" + i, title: node.label, narration: (i === 0 ? "Let's use a basic source overview to get our bearings. " + (services.size ? "These connections show startup dependencies, not request traffic. " : "") : "") + (node.kind === "container"
+    return { id: prefix + "step" + i, title: node.label, narration: (i === 0 && services.size ? "These connections show startup dependencies, not request traffic. " : "") + (node.kind === "container"
       ? behavior
-      : sourceOrientation(source)), targetIds: linkedEdges.length ? [node.id, ...linkedEdges.slice(0, 2)] : [node.id], action: linkedEdges.length ? "trace" : "reveal", durationMs: 18000 };
+      : sourceOrientation(source, index)), targetIds: linkedEdges.length ? [node.id, ...linkedEdges.slice(0, 2)] : [node.id], action: linkedEdges.length ? "trace" : "reveal", durationMs: 18000 };
   });
   return { title: (index.repository.name + " · basic source overview").slice(0, 150), summary: "Basic source overview: the AI explanation could not be validated. This limited orientation shows parsed declarations and where to inspect the original sources; it does not establish missing architecture or application behavior.",
     coverage: "append", nodes, edges, steps, targetIds: nodes.slice(0, 3).map(node => node.id) };

@@ -73,8 +73,8 @@ test("private/missing repositories fail without model calls, retries or credenti
   assert.equal(calls, 1);
 });
 
-test("application code, secrets, symlinks and vendored files are never decompressed", async () => {
-  const ignored = ["app.ts", "auth.py", ".env", "secrets.yaml", "node_modules/pkg/package.json", "infra/terraform.tfstate"];
+test("secrets, generated code, symlinks and vendored files are never decompressed", async () => {
+  const ignored = ["generated/app.ts", "vendor/auth.py", ".env", "secrets.yaml", "node_modules/pkg/package.json", "infra/terraform.tfstate"];
   const snapshot = await imported(zipFixture([doc, ...ignored.map(name => ({ name: "project-HEAD/" + name, text: "DO_NOT_READ", invalidDeflate: true })),
     { name: "project-HEAD/ARCHITECTURE.md", text: "outside.md", mode: 0xa1ff, invalidDeflate: true },
   ]));

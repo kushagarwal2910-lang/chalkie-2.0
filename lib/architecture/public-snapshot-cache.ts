@@ -18,7 +18,7 @@ export class PublicSnapshotCache {
   set(key: string, etag: string, snapshot: PublicBlueprintSnapshot) {
     this.entries.delete(key);
     const bytes = Buffer.byteLength(JSON.stringify(snapshot));
-    if (!etag || etag.length > 200 || bytes > 4 * 1024 * 1024) return;
+    if (!etag || etag.length > 200 || bytes > 8 * 1024 * 1024) return;
     this.entries.set(key, { etag, snapshot: structuredClone(snapshot), expires: Date.now() + this.ttl, bytes });
     let total = [...this.entries.values()].reduce((sum, value) => sum + value.bytes, 0);
     for (const [oldKey, value] of this.entries) {

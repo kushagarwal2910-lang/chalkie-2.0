@@ -1,6 +1,6 @@
 # Chalkie
 
-Chalkie turns a GitHub repository's architectural blueprints into a narrated, interactive diagram. It helps developers onboard, engineering teams understand system boundaries, and product or leadership audiences follow the architecture in plain language.
+Chalkie connects a public GitHub repository's code, documentation and architectural blueprints into a narrated, interactive diagram. It helps developers onboard, engineering teams understand system behavior, and product or leadership audiences follow the architecture in plain language.
 
 ## Run locally
 
@@ -19,13 +19,13 @@ Narration is prompted as a connected explanation of purpose, inputs, component b
 
 Device narration expands common engineering names and acronyms locally, preserves normal words, and speaks short sentences with brief pauses while keeping diagram highlights synchronized. Voice settings preview the same readings and pacing without Groq calls; voice quality depends on the voices available in the browser. The compact studio question bar keeps audience, question mode, repository access, and supporting documentation under its settings button.
 
-Open **Add instructions & documentation** on the home page or in the studio's new-repository composer to supply a specific explanation prompt, pasted supporting notes, and Markdown/text documents. For example: “Explain the API and database to a new frontend engineer.” GitHub remains the repository source; these documents add business context, team conventions and architecture details. Attachments are explicitly labeled as supporting evidence, with expandable excerpts instead of fabricated GitHub links. They remain in the owner-scoped index for follow-up questions and their cited excerpts survive JSON export/import. If the repository has no readable blueprints, supplied documentation can support the walkthrough with an explicit coverage warning.
+Open **Add instructions & documentation** on the home page or in the studio's new-repository composer to supply a specific explanation prompt, pasted supporting notes, and Markdown/text documents. For example: “Explain the API and database to a new frontend engineer.” GitHub remains the repository source; these documents add business context, team conventions and architecture details. Attachments are explicitly labeled as supporting evidence, with expandable excerpts instead of fabricated GitHub links. They remain in the owner-scoped index for follow-up questions and their cited excerpts survive JSON export/import. If the repository has no readable source or architecture documents, supplied documentation can support the walkthrough with an explicit coverage warning.
 
 Uploads support UTF-8 `.md`, `.markdown` and `.txt`, at most five files, 100 KB and 20,000 characters per file. Pasted notes allow 20,000 characters; combined documentation is limited to 80,000 characters. Paste text from PDF or Word documents into Supporting notes; binary document parsing and OCR are not included. The home-to-studio handoff uses temporary tab storage, keeping document text and instructions out of URLs. Failed requests retain their original submitted context in memory for retry.
 
 Public imports download a GitHub ZIP snapshot directly from `codeload.github.com`; they make **zero GitHub REST API calls** and no model calls. The importer does not accept or forward GitHub tokens, cookies, or other user credentials. This avoids the 60-request anonymous REST allowance. GitHub can still temporarily throttle archive downloads; the app honors its retry headers without suggesting extra keys. A 404 cannot reveal whether a repository is private, missing, or the branch name is wrong, so the error explains all of those possibilities.
 
-A bounded, 15-minute in-memory cache keeps redacted public blueprint evidence and its archive ETag. Every reuse revalidates public access with GitHub; it never serves stale cached evidence after access fails. Unchanged archives avoid parsing again, and a 304 avoids transferring the archive again. User instructions and attachments never enter this shared cache. Follow-up questions use the browser-owned saved snapshot, without redownloading the repository. Imports add no AI-token charges; normal Groq generation limits and hosting resource costs still apply.
+A bounded, 15-minute cache keeps redacted public evidence, the filtered repository file tree and its archive ETag. Every new import revalidates public access; unchanged archives avoid parsing again. User instructions and attachments never enter this shared cache. Follow-ups search the browser-owned index and can read up to six relevant files from `raw.githubusercontent.com` at the same commit, following local import references. Older blueprint-only indexes upgrade automatically from that commit. These operations use no GitHub credentials or LLM calls; normal Groq generation limits, GitHub download throttling and hosting resource costs still apply.
 
 Model requests select bounded excerpts rather than resending entire documents. The serialized explanation request is capped at 14 KB, including schema/history/repair instructions, with a 3,000-token completion allowance. This is a size guard, not exact token accounting or a guarantee against provider limits. [Groq limits](https://console.groq.com/docs/rate-limits) apply at organization level, so multiple keys in one organization share quota.
 
@@ -33,17 +33,18 @@ Groq can reject a generated diagram with `json_validate_failed` even when keys a
 
 ## What is indexed
 
-The ingestion engine downloads a bounded compressed snapshot and reads its embedded commit SHA for immutable citations. It inspects the ZIP directory and decompresses only allowed blueprint files into memory. Application source can travel inside the compressed archive but is never decompressed, parsed, stored in the index, or sent to the model. No archive files are extracted to disk or executed, and no dependencies are installed. Submodule contents and files excluded by Git archive rules are outside snapshot coverage.
+The ingestion engine reads the snapshot's embedded commit SHA for immutable citations, maps safe regular files from its ZIP directory and inspects bounded blueprint and application-source files in memory. JavaScript/TypeScript/JSX/TSX use the TypeScript AST; Python uses a Lezer concrete syntax tree. These parsers identify imports, functions, classes, call sites and useful implementation excerpts. Other supported code languages use exact text excerpts, without claiming AST support. No imported code is executed, archive files are extracted to disk, or repository dependencies are installed. This is a snapshot file map, not a clone of Git history; submodules and Git archive exclusions are outside coverage.
 
 - Dockerfiles and Compose: images, services, exposed ports, declared networks, volumes and startup dependencies.
 - Terraform HCL/JSON: resources, modules, providers and unresolved references.
 - Kubernetes and CloudFormation YAML/JSON: resource declarations and intrinsic references. Unrelated YAML is discarded after structural classification.
 - Dependency manifests: `package.json`, requirements files, `pyproject.toml`, `go.mod`, `Cargo.toml`, `pom.xml`, and `Gemfile`.
 - High-level documents: README, ARCHITECTURE, AGENTS, onboarding, deployment, runbooks, and architecture decision records, including nested directories.
+- Application source: entrypoints, routes/controllers and library code, with bounded exact excerpts and original line citations. Follow-up retrieval can prioritize a named function beyond the overview's excerpts.
 
-Application source, lockfiles, vendored/build directories, environment files, state files, and symlinks are excluded. Obvious credential values are redacted before storage. Redaction is best effort: do not put credentials into repository documentation. Repository text, including AGENTS instructions, is untrusted evidence for the explanation model.
+Lockfiles, vendored/build directories, environment/credential files, state files, generated paths and symlinks are excluded from content indexing. Obvious credentials are masked before source excerpts or metadata are stored. Redaction is best effort. Repository text, including AGENTS instructions, is untrusted evidence for the explanation model.
 
-Blueprints describe **declared or documented architecture**, not verified production state. A package dependency does not prove a deployed service; Compose `depends_on` describes startup order, not request flow. The model is instructed to preserve those distinctions and cite evidence. Citations are validated references, not a guarantee that every generated interpretation is correct.
+Blueprints and static code do not verify production state. An import is not proof a function ran, a package dependency does not prove a deployed service, and Compose `depends_on` describes startup order. Generated components and relationships require exact supporting passages and identity checks; prose interpretations still require judgment. The teaching prompt synthesizes inputs, transformations, handoffs, decisions and outputs. Narration keeps full paths in citations, uses short basenames only when useful and locally removes long file references without extra voice calls.
 
 ## Canvas and LLM responsibilities
 
@@ -89,9 +90,10 @@ For ongoing use, choose a paid instance, attach a [persistent disk](https://rend
 
 ## Current boundaries
 
-- Each scan is bounded to a 32 MB compressed snapshot, 50,000 archive entries, 120 candidate blueprint files, 128 KB per file, and about 1.8 MB of blueprint content. At most two imports run concurrently per process. Partial coverage and parse failures are displayed. Large monorepos may require a later scoped indexing workflow.
-- Helm templates are not rendered, Terraform remote modules are not downloaded, and live cloud state is not queried. Unsupported templates yield coverage warnings. Follow-ups cannot reveal business logic absent from the allowed blueprints.
-- Retrieval currently ranks bounded evidence lexically; it does not use an embedding database. Automatic diagrams are limited to 160 components and 320 connections; large systems should be explored through successive focused explanations.
+- Each import allows a 32 MiB ZIP, 50,000 entries, 120 blueprint files/1.8 MB, and 160 source files/3 MiB. Files are limited to 128,000 bytes. Stored source text is capped at 3 MiB/2,400 excerpts. At most two imports run concurrently. The tree retains eligible unindexed paths for targeted follow-ups; large/unsupported files remain outside readable coverage.
+- Follow-up lookup is limited to six files, 128,000 bytes each and 30 seconds, within a 6,000-excerpt/7-million-character research ceiling. No model calls are used for search or parsing. The explanation request still uses its existing 14 KB/3,000-token limits.
+- Helm templates are not rendered, remote Terraform modules are not downloaded and live infrastructure is not queried. Static syntax cannot establish all runtime behavior or undocumented business intent; remaining gaps are stated specifically, not hidden.
+- Retrieval ranks paths, symbols and source text and follows local import neighbors; it does not use an embedding database. Automatic diagrams are limited to 160 components and 320 connections; explore larger systems through focused follow-ups.
 - Node overlap is corrected at layout/drag completion. Complex graphs can still have edge crossings; subsystem filtering and focused playback keep them readable.
 - Public repositories only. Private repository authorization, organization accounts, GitHub App installation, shared workspaces and access audits are separate product work.
 

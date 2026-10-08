@@ -3,6 +3,59 @@
  * and natural pause cadence for device speech synthesis. No model calls.
  */
 
+const FILE_NAME = String.raw`(?:[\p{L}\d_.@+~-]+\.\p{L}[\p{L}\d]{0,11}|Dockerfile(?:\.[\w.-]+)?|Makefile|README|LICENSE|Gemfile|Procfile|\.env(?:\.[\w.-]+)?)`;
+const FILE_LINES = String.raw`(?:#L?\d+(?:-L?\d+)?|:\d+(?::\d+)?(?:-\d+(?::\d+)?)?)?(?:\s*\(lines?\s+\d+(?:\s*[-–]\s*\d+)?\))?`;
+
+function spokenFileName(name: string): string {
+  return name.length > 48 || /^[a-f\d]{24,}(?:\.[a-z\d]+)+$/i.test(name) ? "the source file" : name;
+}
+
+function shortenFileReference(value: string): string {
+  const punctuation = value.match(/[.,;!?]+$/)?.[0] ?? "";
+  let reference = punctuation ? value.slice(0, -punctuation.length) : value;
+  if (/^(?:https?:\/\/)?github\.com\/[^/]+\/[^/]+\/blob\//i.test(reference)) {
+    try {
+      const url = new URL(/^https?:/i.test(reference) ? reference : "https://" + reference);
+      const basename = decodeURIComponent(url.pathname.split("/").at(-1) ?? "");
+      return (basename ? spokenFileName(basename) : "the source file") + punctuation;
+    } catch { return "the source file" + punctuation; }
+  }
+  // Endpoint names describe an interface, not a source location.
+  if (/^\/?(?:api|rest|graphql|v\d+)[/\\]/i.test(reference)) return value;
+  reference = reference.replace(new RegExp(FILE_LINES + "$", "iu"), "");
+  const basename = reference.split(/[/\\]/).at(-1) ?? "";
+  const recognizableFile = new RegExp("^" + FILE_NAME + "$", "iu").test(basename)
+    || /[/\\]/.test(reference) && /^[\p{L}\d_. @+()~-]+\.\p{L}[\p{L}\d]{0,11}$/u.test(basename);
+  if (!recognizableFile) return value;
+  return spokenFileName(basename) + punctuation;
+}
+
+/** Shorten narration only. Source paths and citation metadata remain intact. */
+export function shortenNarrationReferences(text: string): string {
+  if (!text) return "";
+  return text
+    // Keep a human-readable link label rather than speaking its destination.
+    .replace(/!?\[([^\]]+)\]\([^\s)]+\)/g, (_full, label: string) => shortenFileReference(label))
+    .replace(new RegExp(String.raw`\x60([^\x60\r\n]+)\x60(${FILE_LINES})`, "giu"), (full, value: string, lines: string) => {
+      const reference = value + lines;
+      const shortened = shortenFileReference(reference);
+      return shortened === reference ? full : shortened;
+    })
+    .replace(/(["'])((?:[a-z]:[/\\]|\.{1,2}[/\\]|~[/\\]|[/\\])[^"'\r\n]+)\1/gi,
+      (full, _quote, value: string) => {
+        const shortened = shortenFileReference(value);
+        return shortened === value ? full : shortened;
+      })
+    .replace(/\b(?:https?:\/\/)?github\.com\/[^\s<>"'`\])]+\/blob\/[^\s<>"'`\])]+/gi, shortenFileReference)
+    // Absolute paths may contain spaces in directory names. Relative paths
+    // with spaces are handled when quoted/backticked, so prose is never eaten.
+    .replace(new RegExp(String.raw`(?:\b[a-z]:[/\\]|~[/\\]|\.{1,2}[/\\]|(?<![\w/])[/\\])(?:[\p{L}\d_. @+~()-]+[/\\])*?${FILE_NAME}${FILE_LINES}(?![\p{L}\d_/\\-]|\.[\p{L}\d])`, "giu"), shortenFileReference)
+    .replace(new RegExp(String.raw`(?<![\p{L}\d_.:/\\])(?:[\p{L}\d_.@+~()-]+[/\\])+?${FILE_NAME}${FILE_LINES}(?![\p{L}\d_/\\-]|\.[\p{L}\d])`, "giu"), shortenFileReference)
+    // Also suppress line citations and unwieldy standalone hashed filenames.
+    .replace(new RegExp(String.raw`(?<![\p{L}\d_.:/\\])${FILE_NAME}${FILE_LINES}(?![\p{L}\d/\\])`, "giu"), shortenFileReference)
+    .replace(/\b(the|a)\s+the source file\b/gi, "$1 source file");
+}
+
 // Common measurement units to expand for clear pronunciation
 const UNIT_REPLACEMENTS: [RegExp, string][] = [
   // Computing units, before the shorter physical-unit patterns.
@@ -117,7 +170,7 @@ const technicalPattern = new RegExp(`\\b(?:${Object.keys(TECHNICAL_READINGS)
 export function formatNarrationForSpeech(text: string): string {
   if (!text) return "";
 
-  let formatted = text
+  let formatted = shortenNarrationReferences(text)
     .replace(/```[^\n]*\n([\s\S]*?)```/g, "$1")
     .replace(/!?\[([^\]]+)\]\([^\s)]+\)/g, "$1")
     .replace(/`([^`]+)`/g, "$1")

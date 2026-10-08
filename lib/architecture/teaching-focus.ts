@@ -2,7 +2,7 @@ const audienceFocus = {
   developer: {
     label: "Engineer onboarding",
     summary: "Understand the purpose, follow a documented workflow, and find where to start contributing.",
-    prompt: "Explain this repository to an engineer joining the team. Start with its documented purpose, then walk through one supported workflow: where it starts, what each component does, what passes between components, and what it produces. Point out where to inspect or contribute first only when the sources support it.",
+    prompt: "Explain this repository to an engineer joining the team. Establish what problem it solves, then trace one concrete supported workflow through the actual implementation: input, entry point, transformations, calls, relevant decisions and output. Explain why each handoff matters for the next step. Include enough mechanism to let the engineer reason about a change, then point to the relevant extension point when evidenced.",
   },
   "cross-team": {
     label: "Product & engineering",
@@ -21,7 +21,7 @@ function focusFor(audience: string) {
 }
 
 export function defaultExplanationFocus(audience: string = "developer") {
-  return focusFor(audience).prompt + " Teach like a patient teammate using the diagram, not a list of labels. Base repository claims on the supplied evidence and separate general background from documented behavior. If no workflow is documented, explain the supported roles or structure instead of inventing a sequence.";
+  return focusFor(audience).prompt + " Teach like a patient teammate using the diagram. Synthesize code and documentation into cause and effect, never a list of filenames or captions. Use a concrete illustrative input when helpful without inventing repository behavior. Keep code details and full paths in source references. Separate static implementation from verified runtime state; be precise about any remaining missing fact instead of saying broadly that you lack context.";
 }
 
 export function effectiveExplanationFocus(custom: string | undefined, audience: string) {

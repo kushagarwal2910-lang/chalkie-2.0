@@ -66,7 +66,7 @@ test("GitHub URL validation rejects SSRF and accepts branch names containing sla
   assert.equal(parseRepositoryUrl("https://github.com/org/repo/tree/feature/docs").ref, "feature/docs");
 });
 
-test("public archive ingestion pins evidence to its commit and excludes application code", async () => {
+test("public archive ingestion pins code and blueprint evidence to its commit without executing source", async () => {
   const urls: string[] = [];
   const commit = "a".repeat(40);
   const content = JSON.stringify({ name: "api", dependencies: { next: "16", redis: "5" } });
@@ -76,12 +76,13 @@ test("public archive ingestion pins evidence to its commit and excludes applicat
     assert.equal(init?.credentials, "omit");
     return archiveResponse(zipFixture([
       { name: "project-HEAD/services/api/package.json", text: content },
-      { name: "project-HEAD/app.ts", text: "never parse or run", invalidDeflate: true },
+      { name: "project-HEAD/app.ts", text: "export function boot() { return 42; }" },
       { name: "project-HEAD/README.md", text: "external-target", mode: 0xa1ff },
     ], commit));
   }) as typeof fetch;
   const index = await ingestRepository("https://github.com/team/project", { ownerKey: "test", fetcher });
-  assert.equal(index.repository.commit, commit); assert.equal(index.files.length, 1);
+  assert.equal(index.repository.commit, commit); assert.equal(index.files.length, 2);
+  assert.ok(index.evidence.some(source => source.kind === "source" && source.text.includes("boot")));
   assert.deepEqual(urls, ["https://codeload.github.com/team/project/zip/HEAD"]);
   assert.match(JSON.stringify(retrieveEvidence(index, "Redis")), /redis/);
 });
@@ -384,8 +385,8 @@ test("supporting documents are bounded, redacted and stored separately from task
   assert.throws(() => withSupportingContext({ ...fixtureIndex(), ownerKey: "another-owner" }, repositoryInputSchema.parse({}), index), /another repository or owner/);
 });
 
-test("a repository without blueprints can use explicit supporting documentation but never scans source code", async () => {
-  const fetcher = (async () => archiveResponse(zipFixture([{ name: "b-HEAD/app.ts", text: "source", invalidDeflate: true }]))) as typeof fetch;
+test("a repository without readable code or blueprints can use explicit supporting documentation", async () => {
+  const fetcher = (async () => archiveResponse(zipFixture([{ name: "b-HEAD/logo.png", text: "binary", invalidDeflate: true }]))) as typeof fetch;
   await assert.rejects(ingestRepository("https://github.com/a/b", { ownerKey: "a", fetcher }), /Add supporting documentation/);
   const index = await ingestRepository("https://github.com/a/b", { ownerKey: "a", fetcher, allowEmptyEvidence: true });
   assert.equal(index.evidence.length, 0); assert.ok(index.warnings.some(w => /supporting documentation/.test(w)));

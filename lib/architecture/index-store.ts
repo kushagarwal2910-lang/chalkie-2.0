@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, writeFile, readdir, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { cookies } from "next/headers";
@@ -30,12 +30,12 @@ export async function saveRepositoryIndex(index: RepositoryIndex) {
     if (info && Date.now() - info.mtimeMs > ttl) await rm(file, { force: true });
     else {
       const saved = await readIndexFile(file);
-      if (saved.ownerKey === index.ownerKey) owned++;
+      if (saved.ownerKey === index.ownerKey && name !== index.id + ".json") owned++;
     }
   }
   if (owned >= 30) throw new RepositoryError("This browser has 30 indexed repositories. Reset the workspace or wait for older snapshots to expire.", "INDEX_LIMIT");
   const destination = path.join(/* turbopackIgnore: true */ root, index.id + ".json");
-  const temporary = destination + ".tmp";
+  const temporary = destination + "." + randomUUID() + ".tmp";
   await writeFile(temporary, JSON.stringify(index), { mode: 0o600 });
   await rename(temporary, destination);
 }

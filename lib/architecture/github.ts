@@ -3,6 +3,7 @@ import { RepositoryError, type RepositoryIndex } from "./types";
 import { githubFailure } from "./github-errors";
 import { ARCHIVE_BYTE_LIMIT, readPublicArchive, type PublicBlueprintSnapshot } from "./github-archive";
 import { PublicSnapshotCache } from "./public-snapshot-cache";
+import { searchRepositoryEvidence } from "./evidence-search";
 
 export function parseRepositoryUrl(input: string) {
   const invalid = () => new RepositoryError("Use a public github.com repository URL or a /tree/branch URL.", "INVALID_REPOSITORY_URL");
@@ -63,7 +64,9 @@ export async function ingestRepository(input: string, options: Options): Promise
   // Injected fetchers use isolated caches unless a test explicitly supplies one.
   const cache = options.cache ?? (options.fetcher ? new PublicSnapshotCache() : publicCache);
   const url = "https://codeload.github.com/" + encodeURIComponent(repo.owner) + "/" + encodeURIComponent(repo.name) + "/zip/" + encodeURIComponent(repo.ref ?? "HEAD");
-  const cached = cache.get(url);
+  const candidate = cache.get(url);
+  // A cached blueprint-only snapshot cannot satisfy the richer tree/code index.
+  const cached = candidate?.snapshot.tree && candidate.snapshot.sourceFiles ? candidate : undefined;
   try {
     options.onStatus?.(cached ? "Checking the public repository for changes" : "Importing public GitHub snapshot · no GitHub token needed");
     const response = await (options.fetcher ?? fetch)(url, {
@@ -84,8 +87,8 @@ export async function ingestRepository(input: string, options: Options): Promise
     }
     const index: RepositoryIndex = { ...structuredClone(snapshot), version: 1, id: randomUUID(), ownerKey: options.ownerKey, createdAt: new Date().toISOString() };
     if (!index.evidence.length) {
-      if (!options.allowEmptyEvidence) throw new RepositoryError("No readable architecture blueprints were found. Add supporting documentation, or use a public repository with container files, infrastructure declarations, dependency manifests, or architecture docs. Application source code is excluded.", "NO_BLUEPRINTS");
-      index.warnings.push("No readable repository blueprints were found. This explanation relies on your supporting documentation; repository architecture is unverified.");
+      if (!options.allowEmptyEvidence) throw new RepositoryError("This snapshot contains no readable source or architecture documents within the import limits. Add supporting documentation or choose a repository with readable project files.", "NO_BLUEPRINTS");
+      index.warnings.push("No readable source or architecture documents were found within the import limits. The explanation uses your supporting documentation.");
     }
     return index;
   } catch (error) {
@@ -97,25 +100,5 @@ export async function ingestRepository(input: string, options: Options): Promise
 }
 
 export function retrieveEvidence(index: RepositoryIndex, question: string, limit = 24) {
-  const stopWords = new Set(["the", "and", "this", "that", "with", "from", "what", "how", "its", "for", "through", "explain", "repository", "supported", "documented", "first", "when", "then", "their", "which", "does", "into", "about", "only"]);
-  const terms = new Set((question.toLowerCase().match(/[a-z0-9][a-z0-9._-]{2,}/g) ?? []).filter(term => !stopWords.has(term)));
-  const scored = index.evidence.map(item => {
-    const text = (item.path + " " + item.text).toLowerCase();
-    const score = [...terms].reduce((sum, term) => sum + (text.includes(term) ? 2 : 0), 0);
-    const introduction = item.startLine === 1 && /(?:^|\/)(?:readme|architecture)\.md$/i.test(item.path) ? 1 : 0;
-    return { item, score: score + introduction + (item.kind === "documentation" ? 0.15 : 0.1) };
-  }).sort((a, b) => b.score - a.score);
-  // Include structural evidence from each file class even when an overview has no keywords.
-  const selected = new Map<string, RepositoryIndex["evidence"][number]>();
-  for (const kind of ["documentation", "compose", "terraform", "kubernetes", "cloudformation", "dependencies", "docker"]) {
-    const match = scored.find(row => row.item.kind === kind && row.item.origin !== "attachment"); if (match) selected.set(match.item.id, match.item);
-  }
-  // Give supplementary documents representation without flooding the overview.
-  const attachments = new Set<string>();
-  for (const { item } of scored) if (item.origin === "attachment" && !attachments.has(item.path) && selected.size < limit) {
-    selected.set(item.id, item); attachments.add(item.path);
-  }
-  for (const { item } of scored) { if (selected.size >= limit) break; selected.set(item.id, item); }
-  let budget = 0;
-  return [...selected.values()].filter(item => { if (budget + item.text.length > 38000) return false; budget += item.text.length; return true; });
+  return searchRepositoryEvidence(index, question, limit);
 }

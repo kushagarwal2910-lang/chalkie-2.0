@@ -6,7 +6,7 @@ import type { BlueprintKind, Evidence } from "./types.ts";
 const ignoredDirectory = /(^|\/)(node_modules|vendor|\.git|\.next|dist|build|coverage|\.terraform|venv|\.venv|__pycache__|target|generated)(\/|$)/i;
 const docName = /^(readme|architecture|agents|contributing|onboarding|design|deployment|infrastructure|operations|runbook)([._-][\w-]+)?\.(md|mdx|rst|txt)$/i;
 
-/** Only these file classes are decompressed and parsed. Application source is never admitted. */
+/** Blueprint classification is separate from the bounded application-source parser. */
 export function classifyBlueprint(path: string): BlueprintKind | null {
   if (ignoredDirectory.test(path) || /(^|\/)(\.env[^/]*|[^/]*\.tfstate(?:\..*)?|secrets?\.[^/]+)$/i.test(path)) return null;
   const name = path.split("/").pop() ?? "";
@@ -15,7 +15,7 @@ export function classifyBlueprint(path: string): BlueprintKind | null {
   if (/^(?:docker-)?compose(?:[.-][\w.-]+)?\.ya?ml$/i.test(name)) return "compose";
   if (/\.tf(?:\.json)?$/i.test(name)) return "terraform";
   if (/^(package\.json|requirements(?:[._-][\w-]+)?\.txt|pyproject\.toml|go\.mod|cargo\.toml|pom\.xml|gemfile)$/i.test(name)) return "dependencies";
-  if (docName.test(name) || /(^|\/)(architecture|adr|adrs|runbooks)\//i.test(path) && /\.md$/i.test(name)) return "documentation";
+  if (docName.test(name) || /(^|\/)(docs?|guides?|architecture|adr|adrs|runbooks)\//i.test(path) && /\.(md|mdx|rst|txt)$/i.test(name)) return "documentation";
   if (/\.ya?ml$/i.test(name)) return "yaml";
   if (/^(?:.*(?:cloudformation|template|cfn).*)\.json$/i.test(name)) return "cloudformation";
   return null;
@@ -27,7 +27,7 @@ export function redactSecrets(text: string): string {
     .replace(/-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----/g, "[REDACTED PRIVATE KEY]")
     .replace(/\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[A-Z0-9]{16}|sk-[A-Za-z0-9_-]{20,}|gsk_[A-Za-z0-9]{20,})\b/g, "[REDACTED]")
     .replace(/(\b(?:password|passwd|secret|token|api[_-]?key|access[_-]?key|private[_-]?key|credentials?)[\w-]*["']?\s*[:=]\s*)([^\r\n,}]+)/gi, "$1[REDACTED]")
-    .replace(/(\w+:\/\/)[^\s/@]+:[^\s/@]+@/g, "$1[REDACTED]@");
+    .replace(/\b([a-z][a-z0-9+.-]{0,30}:\/\/)[^\s/@:]+:[^\s/@]+@/gi, "$1[REDACTED]@");
 }
 
 function safeValue(value: unknown, key = "", depth = 0): unknown {

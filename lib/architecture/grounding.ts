@@ -46,6 +46,8 @@ export function quoteMatchesEvidence(quote: string, evidenceIds: readonly string
 export function nodeIdentityMentioned(node: NodeIdentity, text: string): boolean {
   const label = normalizeSpace(node.label);
   if (mentions(text, label)) return true;
+  const spokenIdentifier = (value: string) => value.replace(/([a-z\d])([A-Z])/g, "$1 $2").replace(/([A-Z])([A-Z][a-z])/g, "$1 $2").replace(/[_$]+/g, " ").trim().toLowerCase();
+  if ((text.match(/\b[a-zA-Z_$][\w$]*\b/g) ?? []).some(identifier => /_|[a-z][A-Z]/.test(identifier) && spokenIdentifier(identifier) === spokenIdentifier(label))) return true;
   // Human-friendly labels may add a role, but never reduce to a generic noun.
   const withoutRole = label.replace(/\s+(?:service|server|database|cache|queue|worker|container|framework|library|client|gateway|model|pipeline|component)$/i, "");
   if (withoutRole !== label && withoutRole.length >= 2 && !/^(?:the|a|an|main|primary|backend|frontend|data|web|application|background)$/i.test(withoutRole) && mentions(text, withoutRole)) return true;
@@ -67,7 +69,7 @@ export function enforceNodeGrounding<T extends GroundableNode>(node: T, evidence
   // A dependency is an installed package, not evidence of a deployed service.
   if (dependenciesOnly) corrected.kind = "unknown";
   if (!cited.length) corrected.certainty = "unknown";
-  else if (corrected.certainty === "declared" && cited.every(source => source.origin === "attachment" || source.kind === "documentation" || source.kind === "dependencies")) corrected.certainty = "documented";
+  else if (corrected.certainty === "declared" && cited.every(source => source.origin === "attachment" || source.kind === "documentation" || source.kind === "dependencies" || source.kind === "source")) corrected.certainty = "documented";
 
   if (!isKnownAsset(corrected.assetId) || corrected.assetId.startsWith("tech:") && !cited.some(source => technologyMentioned(source.text, corrected.assetId))) {
     const fallback = "concept:" + corrected.kind;

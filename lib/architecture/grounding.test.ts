@@ -59,3 +59,17 @@ test("edge endpoint checks require both identities in the relationship excerpt",
   assert.ok(edgeEndpointsMentioned(from, to, "The API submits each task to the worker."));
   assert.equal(edgeEndpointsMentioned(from, to, "The API receives incoming requests."), false);
 });
+
+test("spoken code identifiers preserve entity identity without combining unrelated words", () => {
+  const identity = { label: "Create job", assetId: "concept:service" };
+  assert.ok(nodeIdentityMentioned(identity, "def create_job(request): return queue.submit(request)"));
+  assert.ok(nodeIdentityMentioned(identity, "function createJob(request) { return submit(request); }"));
+  assert.equal(nodeIdentityMentioned(identity, "create_user(request); enqueue_job(request);"), false);
+  assert.equal(nodeIdentityMentioned({ ...identity, label: "Billing worker" }, "create_job(request);"), false);
+});
+
+test("static source evidence does not establish a deployed resource", () => {
+  const result = enforceNodeGrounding(node(), [source("const client = new Redis();", { kind: "source", path: "src/cache.ts" })]);
+  assert.equal(result.certainty, "documented");
+  assert.equal(result.assetId, "tech:redis");
+});

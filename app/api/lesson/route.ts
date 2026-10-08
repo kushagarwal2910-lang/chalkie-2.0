@@ -8,6 +8,7 @@ import { repositoryOwner, saveRepositoryIndex, loadRepositoryIndex } from "@/lib
 import { createRepositoryLesson } from "@/lib/architecture/explanation";
 import { repositoryInputSchema } from "@/lib/repository-input";
 import { withSupportingContext } from "@/lib/architecture/supporting-context";
+import { investigateRepository } from "@/lib/architecture/repository-research";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -27,9 +28,9 @@ export async function POST(request: NextRequest) {
     const repository = await ingestRepository(input.question, { ownerKey, signal, allowEmptyEvidence: Boolean(input.context.notes || input.context.documents.length || previous?.evidence.some(e => e.origin === "attachment")), onStatus: message => send("status", { stage: "indexing", message }) });
     // Explain public-access failures even when no model key is configured.
     if (quota.allUnavailable) throw new GroqFreeLimitError(quota);
-    const index = withSupportingContext(repository, input.context, previous);
+    const index = await investigateRepository(withSupportingContext(repository, input.context, previous), input.context.instructions || "main entry request inference workflow", { signal, freshlyIndexed: true, onStatus: message => send("status", { stage: "retrieving", message }) });
     await saveRepositoryIndex(index);
-    send("status", { stage: "visualizing", message: "Indexed " + index.files.length + " blueprints. Designing your architecture walkthrough…" });
+    send("status", { stage: "visualizing", message: "Mapped " + (index.tree?.length ?? index.files.length) + " files and indexed " + index.files.length + ". Connecting the implementation into a walkthrough…" });
     const lesson = await createRepositoryLesson(index, input.audience, { sessionId: input.sessionId, preferredKeyId: input.preferredGroqKeyId, signal, timeoutMs: 150000, onStatus: status => send("provider_status", status) });
     send("lesson", { lesson, mode: "live" });
   });

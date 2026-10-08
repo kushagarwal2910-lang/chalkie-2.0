@@ -434,7 +434,7 @@ export function ChalkieStudio() {
     setIsFollowUpGenerating(false);
     setVoiceState("thinking");
     setLastHeard(question);
-    setGenerationStage("Discovering repository blueprints");
+    setGenerationStage("Mapping repository files and implementation");
     notify("Preparing your architecture walkthrough");
 
     try {
@@ -942,7 +942,7 @@ export function ChalkieStudio() {
               <div className="px-4 pb-4">
                 <label className="studio-search"><Search size={15} /><input value={sourceQuery} onChange={(event) => setSourceQuery(event.target.value)} placeholder="Find a source" aria-label="Search lesson sources" /></label>
               </div>
-              {lesson.repository && <div className="repository-snapshot"><strong>{lesson.repository.name}</strong><span>{lesson.repository.indexedFiles} blueprints · commit {lesson.repository.commit.slice(0, 7)}</span><p>Declared architecture · snapshot retained for 7 days</p>{lesson.repository.warnings.length > 0 && <details><summary>{lesson.repository.warnings.length} coverage notes</summary>{lesson.repository.warnings.map((warning, i) => <p key={i}>{warning}</p>)}</details>}</div>}
+              {lesson.repository && <div className="repository-snapshot"><strong>{lesson.repository.name}</strong><span>{lesson.repository.indexedFiles} indexed files · commit {lesson.repository.commit.slice(0, 7)}</span><p>Code & architecture · snapshot retained for 7 days</p>{lesson.repository.warnings.length > 0 && <details><summary>{lesson.repository.warnings.length} coverage notes</summary>{lesson.repository.warnings.map((warning, i) => <p key={i}>{warning}</p>)}</details>}</div>}
               <div className="studio-panel-scroll px-3">
                 {!displaySources.length && <div className="studio-empty-card"><FileText size={25} /><h3>{lesson.sources.length ? "No matching sources" : "A little context goes a long way"}</h3><p>{lesson.sources.length ? "Try a different title or publisher." : "Repository blueprint citations will appear here after indexing."}</p></div>}
                 <div className="space-y-1">
@@ -978,7 +978,7 @@ export function ChalkieStudio() {
                   <div className="studio-sketch" aria-hidden="true"><span /><span /><span /><svg viewBox="0 0 220 100"><path d="M55 50H85M135 50H165M110 32V16H190V50" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" /></svg></div>
                   <p className="mb-3 text-[11px] font-semibold uppercase tracking-[.18em] text-[#a9c9b0]">From repository to shared understanding</p>
                   <h1 className="text-balance text-2xl font-medium tracking-[-.035em] sm:text-3xl">See how it all connects.</h1>
-                  <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#a9adb6]">Paste a public GitHub repository below. Chalkie reads its blueprints and explains the architecture, one connection at a time. No GitHub token needed.</p>
+                  <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#a9adb6]">Paste a public GitHub repository below. Chalkie maps its files and connects the implementation to its architecture, one step at a time. No GitHub token needed.</p>
                   <p className="mx-auto mt-4 max-w-sm text-xs leading-5 text-[#a9adb6]">Docker · Infrastructure · Dependencies · Documentation</p>
                 </div></div>}
                 {isGenerating && <div className="studio-board-loading" role="status"><div className="m-auto max-w-sm p-6 text-center"><Waves className="mx-auto animate-pulse text-[#c4b5fd]" size={32} /><h2 className="mt-5 text-xl font-medium tracking-[-.03em]">Connecting the dots</h2><p className="mt-2 text-sm leading-6 text-[#a9adb6]">{generationStage}</p>{lastHeard && <p className="mt-4 line-clamp-2 text-xs italic text-[#a9adb6]">“{lastHeard}”</p>}</div></div>}

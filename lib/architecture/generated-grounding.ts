@@ -61,7 +61,7 @@ export function validateGeneratedGrounding(plan: Explanation, proofs: GeneratedG
       }
       corrected.label = "Startup dependency";
       corrected.certainty = "declared";
-    } else if (corrected.certainty === "declared" && sources.every(source => source.kind === "documentation" || source.origin === "attachment")) corrected.certainty = "documented";
+    } else if (corrected.certainty === "declared" && sources.every(source => source.kind === "documentation" || source.kind === "source" || source.origin === "attachment")) corrected.certainty = "documented";
     return corrected;
   });
   return { ...plan, nodes, edges };
